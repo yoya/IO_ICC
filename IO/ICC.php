@@ -70,7 +70,13 @@ class IO_ICC {
         $header['DataTimeCreated'] = $this->getDateTimeNumber($bitin);
         $header['acspSignature'] = $bitin->getData(4);
         $header['PrimaryPlatform'] = $bitin->getData(4);
-        $header['CMMOptions'] = $bitin->getUI32BE();
+        $cmmOptions1 = $bitin->getUI16BE();
+        $cmmOptions2 = $bitin->getUI16BE();
+        $header['CMMOptions'] =
+            array (
+                   'EmbedProfile' => ($cmmOptions1 & 1) != 0,
+                   'Independently' => ($cmmOptions1 & 2) != 0,
+                   );
         $header['DeviceManufacturer'] = $bitin->getUI32BE();
         $header['DeviceModel'] = $bitin->getUI32BE();
         $deviceAttribute1 = $bitin->getUI32BE();
