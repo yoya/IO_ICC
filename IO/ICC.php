@@ -53,7 +53,6 @@ class IO_ICC {
         $bitin->input($iccdata);
         // Header
         if ($bitin->hasNextData(self::HEADER_SIZE) === false) {
-            
             throw new Exception('header is too short('. strlen($iccdata).')');
         }
         $header = array();
