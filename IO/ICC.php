@@ -19,7 +19,10 @@ class IO_ICC {
     var $_iccdata = null;
     var $_header = null;
     const HEADER_SIZE = 128;
+    var $_tagTable = null;
+    //
     var $_headerType = null;
+    //
     function __construct() {
         global $IO_ICC_Header_Type;
         $this->_headerType = $IO_ICC_Header_Type;
@@ -93,6 +96,18 @@ class IO_ICC {
         $this->_header = $header;
         // Body
         $bitin->setOffset(self::HEADER_SIZE, 0);
+        $tagTableCount = $bitin->getUI32BE();
+        $tagTable = array();
+        for ($i = 0 ; $i < $tagTableCount ; $i++) {
+            $tagTable []=
+                array(
+                      'Signature' => $bitin->getData(4),
+                      'Offset' => $bitin->getUI32BE(),
+                      'Size' => $bitin->getUI32BE(),
+                      
+                 );
+        }
+        $this->_tagTable = $tagTable;
     }
     function dump($opts = array()) {
         $header = $this->_header;
@@ -119,6 +134,12 @@ class IO_ICC {
                 }
                 echo PHP_EOL;
             }
+        }
+        $tagTable = $this->_tagTable;
+        $tagTableCount = count($tagTable);
+        echo "TagTableCount: $tagTableCount".PHP_EOL;
+        foreach ($tagTable as $tag) {
+            echo json_encode($tag).PHP_EOL;
         }
     }
 }
