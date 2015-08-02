@@ -24,6 +24,9 @@ class IO_ICC {
         global $IO_ICC_Header_Type;
         $this->_headerType = $IO_ICC_Header_Type;
     }
+    function getS15Fixed16Number($bitin) {
+        return $bitin->getSI32BE() / 0x10000;
+    }
     function getDateTimeNumber($bitin) {
         $dateTime = array(
                           'Year' => $bitin->getUI16BE(),
@@ -36,7 +39,13 @@ class IO_ICC {
         return $dateTime;
     }
     function getXYZNumber($bitin) {
-        return $bitin->getData(0x12);
+        $xyz =
+            array(
+                  'X' => $this->getS15Fixed16Number($bitin),
+                  'Y' => $this->getS15Fixed16Number($bitin),
+                  'Z' => $this->getS15Fixed16Number($bitin),
+                  );
+        return $xyz;
     }
     function parse($iccdata) {
         $this->_iccdata = $iccdata;
@@ -60,7 +69,7 @@ class IO_ICC {
         $header['ColorSpace'] = $bitin->getData(4);
         $header['ConnectionSpace'] = $bitin->getData(4);
         $header['DataTimeCreated'] = $this->getDateTimeNumber($bitin);
-        $header['acspSignature'] = $bitin->getUI32BE();
+        $header['acspSignature'] = $bitin->getData(4);
         $header['PrimaryPlatform'] = $bitin->getData(4);
         $header['CMMOptions'] = $bitin->getUI32BE();
         $header['DeviceManufacturer'] = $bitin->getUI32BE();
@@ -70,10 +79,11 @@ class IO_ICC {
         $header['DeviceAttribute'] =
             array (
                    'ReflectiveOrTransparency' => ($deviceAttribute1 & 1) != 0,
-                   'GlossyOnMatte' => ($deviceAttribute1 & 2) != 0,
+                   'GlossyOnMatte'            => ($deviceAttribute1 & 2) != 0,
                    );
         $header['RenderingIntent'] = $bitin->getUI32BE();
         $header['XYZvalueD50'] = $this->getXYZNumber($bitin);
+
         $header['CreatorID'] = $bitin->getUI32BE();
         $this->_header = $header;
         // Body
