@@ -5,6 +5,7 @@
 */
 
 require_once 'IO/Bit.php';
+require_once dirname(__FILE__).'/ICC/Tag.php';
 
 $IO_ICC_Header_Type =
     array(
@@ -20,6 +21,7 @@ class IO_ICC {
     var $_header = null;
     const HEADER_SIZE = 128;
     var $_tagTable = null;
+    var $_tags = null;
     //
     var $_headerType = null;
     //
@@ -104,10 +106,18 @@ class IO_ICC {
                       'Signature' => $bitin->getData(4),
                       'Offset' => $bitin->getUI32BE(),
                       'Size' => $bitin->getUI32BE(),
-                      
                  );
         }
         $this->_tagTable = $tagTable;
+        $iccInfo =
+            array(
+                  'Version' => $header['ProfileVersion'],
+                  );
+        foreach ($tagTable as $tagInfo) {
+            $tag = new IO_ICC_Tag($iccInfo);
+            $tag->parse($bitin, $tagInfo);
+            $this->_tags[] = $tag;
+        }
     }
     function dump($opts = array()) {
         $header = $this->_header;
@@ -138,8 +148,8 @@ class IO_ICC {
         $tagTable = $this->_tagTable;
         $tagTableCount = count($tagTable);
         echo "TagTableCount: $tagTableCount".PHP_EOL;
-        foreach ($tagTable as $tag) {
-            echo json_encode($tag).PHP_EOL;
+        foreach ($this->_tags as $tag) {
+            $tag->dump($opts);
         }
     }
 }
