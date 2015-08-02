@@ -1,0 +1,21 @@
+{
+    "name": "yoya/io_icc",
+    "type": "library",
+    "description": "ICC Color Profile library",
+    "keywords": ["icc", "color"],
+    "homepage": "http://pwiki.awm.jp/~yoya/?IO_ICC",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yoya",
+            "email": "yoya@awm.jp"
+        }
+    ],
+    "require": {
+        "php": ">=5.1.0",
+        "yoya/io_bit": "~2.2.1"
+    },
+    "autoload": {
+        "psr-0": { "IO_ICC": "." }
+    }
+}
