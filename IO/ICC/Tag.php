@@ -10,13 +10,14 @@ require_once dirname(__FILE__).'/../ICC/Exception.php';
 class IO_ICC_Tag {
     var $tagInfo = null;
     var $iccInfo = null;
-    var $type = null;
+    var $signature = null;
     var $tag = null;
     //
     static $tagMap =
         array(
-              // type => array(klass)
-              'desc' => array('klass' => 'TextDesc'),
+              // signature => array(klass)
+              'desc' => array('klass' => 'TextDesc', "version" => 2),
+              'curv' => array('klass' => 'Curve', "version" => 4),
               );
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
@@ -29,12 +30,14 @@ class IO_ICC_Tag {
     }
     function parse($reader, $tagInfo, $opts = array()) {
         $this->tagInfo = $tagInfo;
-        $this->type = $tagInfo['Signature'];
+        $this->signature = $tagInfo['Signature'];
         $reader->setOffset($tagInfo['Offset'], 0);
         $this->content = $reader->getData($tagInfo['Size']);
+        $this->type = substr($this->content, 0, 4);
     }
     function dump($opts = array()) {
         $tagInfo = $this->tagInfo;
+        echo "    ";
         foreach ($tagInfo as $key => $value) {
             echo "$key:$value ";
         }
@@ -42,7 +45,6 @@ class IO_ICC_Tag {
         if ($this->parseTagContent($opts)) {
             $this->tag->dumpContent($this->type, $opts);
         }
-        echo PHP_EOL;
     }
 
     function parseTagContent($opts = array()) {

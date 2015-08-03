@@ -13,23 +13,21 @@ class IO_ICC_Tag_TextDesc extends IO_ICC_Tag_Base {
     function parseContent($type, $content, $opts = array()) {
         $reader = new IO_Bit();
     	$reader->input($content);
-        $this->type = $reader->getData(4);
-        $reader->getData(4); // reserved, must be set to 0
+        $this->type = $type;
+        $reader->incrementOffset(8, 0); // skip head 8 bytes
         $asciiCount = $reader->getUI32BE();
-        var_dump("ASCIICount: $asciiCount");
         if ($asciiCount > 0) {
             $this->ascii = $reader->getData($asciiCount);
         }
         $this->unicodeLanguage = $reader->getData(4);
         $unicodeCount = $reader->getUI32BE();
-        var_dump("UnicodeCount: $unicodeCount");
         if ($unicodeCount > 0) {
             $ucs2be = $reader->getData($unicodeCount * 2);
             $this->unicode = mb_convert_encoding($ucs2be, 'UTF-8', 'UCS-2BE');
         }
         $this->scriptCode = $reader->getUI16BE();
         $macintoshCount = $reader->getUI8();
-        var_dump("MacintoshCount:$macintoshCount");
+        // var_dump("MacintoshCount:$macintoshCount");
         if ($macintoshCount > 0) {
             $this->macintosh = $reader->getData($macintoshCount);
         }
