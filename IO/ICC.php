@@ -120,10 +120,11 @@ class IO_ICC {
         }
     }
     function dump($opts = array()) {
+        echo "Header:".PHP_EOL;
         $header = $this->_header;
         foreach ($header as $key => $value) {
             if (is_array($value)) {
-                echo "$key:";
+                echo "    $key:";
                 foreach ($value as $k => $v) {
                     if (is_bool($v)) {
                         echo " $k:".($v?"true":"false");
@@ -134,9 +135,9 @@ class IO_ICC {
                 echo PHP_EOL;
             } else {
                 if (is_bool($value)) {
-                    echo "$key:".($value?"true":"false");
+                    echo "    $key:".($value?"true":"false");
                 } else {
-                    echo "$key:$value";
+                    echo "    $key: $value";
                 }
                 if (isset($this->_headerType[$key][$value])) {
                     $typestr = $this->_headerType[$key][$value];
