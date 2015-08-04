@@ -37,11 +37,8 @@ class IO_ICC_Tag {
     }
     function dump($opts = array()) {
         $tagInfo = $this->tagInfo;
-        echo "    ";
-        foreach ($tagInfo as $key => $value) {
-            echo "$key:$value ";
-        }
-        echo PHP_EOL;
+        echo "    Signature:{$tagInfo['Signature']} Type:{$this->type}";
+        echo " (Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']})".PHP_EOL;
         if ($this->parseTagContent($opts)) {
             $this->tag->dumpContent($this->type, $opts);
         }
