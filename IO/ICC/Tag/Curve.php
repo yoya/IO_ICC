@@ -25,8 +25,14 @@ class IO_ICC_Tag_Curve extends IO_ICC_Tag_Base {
 
     function dumpContent($type, $opts = array()) {
         echo "        CurveValues:";
-        foreach ($this->CurveValues as $idx => $value) {
-            echo " [$idx]$value";
+        $values = $this->CurveValues;
+        if (count($values) === 1) {
+            $value = $values[0];
+            echo " $value (gamma value)";
+        } else {
+            foreach ($values as $idx => $value) {
+                echo " [$idx]$value";
+            }
         }
         echo PHP_EOL;
     }
