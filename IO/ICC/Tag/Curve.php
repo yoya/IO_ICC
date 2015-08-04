@@ -1,6 +1,6 @@
 <?php
 
-require_once 'IO/ICC/Bit.php';
+require_once dirname(__FILE__).'/../Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Tag_Curve extends IO_ICC_Tag_Base {
