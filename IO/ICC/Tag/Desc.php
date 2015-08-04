@@ -49,6 +49,32 @@ class IO_ICC_Tag_Desc extends IO_ICC_Tag_Base {
 
     function buildContent($type, $opts = array()) {
         $writer = new IO_Bit();
+        $writer->putData($this->type);
+        $writer->putData("\0\0\0\0");
+        //
+        if (is_null($this->ascii)) {
+            $writer->putUI32BE(0);
+        } else {
+            $writer->putUI32BE(strlen($this->ascii));
+            $writer->putData($this->ascii);
+        }
+        $writer->putData($this->unicodeLanguage);
+        if (is_null($this->unicode)) {
+            $writer->putUI32BE(0);
+        } else {
+            $ucs2bs =mb_convert_encoding($ucs2be, 'UCS-2BE', 'UTF-8');
+            $writer->putUI32BE(strlen($ucs2bs) / 2);
+            $writer->putData($ucs2bs);
+        }
+        $writer->putUI16BE($this->scriptCode);
+        if (is_null($this->macintosh)) {
+            $writer->putUI8(0);
+        } else {
+            $macintoshCount = strlen($this->macintosh);
+            $writer->putUI8($macintoshCount);
+            $macintosh_0filled = str_pad($this->macintosh, 67, "\0");
+            $writer->putData($macintosh);
+        }
     	return $writer->output();
     }
 }

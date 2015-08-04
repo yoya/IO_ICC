@@ -11,8 +11,17 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 class IO_ICC_Bit extends IO_Bit {
+    function getU8Fixed8Number() {
+        return $this->getUI16BE() / 0x100;
+    }
+    function putU8Fixed8Number($value) {
+        return $this->putUI16BE($value * 0x100);
+    }
     function getS15Fixed16Number() {
         return $this->getSI32BE() / 0x10000;
+    }
+    function putS15Fixed16Number($value) {
+        return $this->putSI32BE($value * 0x10000);
     }
     function getDateTimeNumber() {
         $dateTime = array(
@@ -32,6 +41,12 @@ class IO_ICC_Bit extends IO_Bit {
                   'Y' => $this->getS15Fixed16Number(),
                   'Z' => $this->getS15Fixed16Number(),
                   );
+        return $xyz;
+    }
+    function putXYZNumber($xyz) {
+        $this->putS15Fixed16Number($xyz['X']);
+        $this->putS15Fixed16Number($xyz['Y']);
+        $this->putS15Fixed16Number($xyz['Z']);
         return $xyz;
     }
 }

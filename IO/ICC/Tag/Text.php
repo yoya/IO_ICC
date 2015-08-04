@@ -22,6 +22,10 @@ class IO_ICC_Tag_Text extends IO_ICC_Tag_Base {
 
     function buildContent($type, $opts = array()) {
         $writer = new IO_Bit();
+        $writer->putData($this->type);
+        $writer->putData("\0\0\0\0");
+        //
+        $writer->putData($this->text);
     	return $writer->output();
     }
 }
