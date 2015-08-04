@@ -18,6 +18,7 @@ class IO_ICC_Tag {
               // signature => array(klass)
               'desc' => array('klass' => 'TextDesc', "version" => 2),
               'curv' => array('klass' => 'Curve', "version" => 4),
+              'XYZ ' => array('klass' => 'XYZ', "version" => 2),
               );
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
