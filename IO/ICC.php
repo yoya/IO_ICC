@@ -32,58 +32,58 @@ class IO_ICC {
     //
     function parse($iccdata) {
         $this->_iccdata = $iccdata;
-        $bitin = new IO_ICC_Bit();
-        $bitin->input($iccdata);
+        $reader = new IO_ICC_Bit();
+        $reader->input($iccdata);
         // Header
-        if ($bitin->hasNextData(self::HEADER_SIZE) === false) {
+        if ($reader->hasNextData(self::HEADER_SIZE) === false) {
             throw new Exception('header is too short('. strlen($iccdata).')');
         }
         $header = array();
-        $header['ProfileSize'] = $bitin->getUI32BE();
-        $header['CMMType'] = $bitin->getUI32BE();
+        $header['ProfileSize'] = $reader->getUI32BE();
+        $header['CMMType'] = $reader->getUI32BE();
         $header['ProfileVersion'] =
             array(
-                  'Major' => $bitin->getUIBCD8(),
-                  'Minor' => $bitin->getUIBCD8(),
+                  'Major' => $reader->getUIBCD8(),
+                  'Minor' => $reader->getUIBCD8(),
                   );
-        $bitin->getData(2); // Profie Version Reserved
-        $header['ProfileDeviceClass'] = $bitin->getData(4);
-        $header['ColorSpace'] = $bitin->getData(4);
-        $header['ConnectionSpace'] = $bitin->getData(4);
-        $header['DataTimeCreated'] = $bitin->getDateTimeNumber();
-        $header['acspSignature'] = $bitin->getData(4);
-        $header['PrimaryPlatform'] = $bitin->getData(4);
-        $cmmOptions1 = $bitin->getUI16BE();
-        $cmmOptions2 = $bitin->getUI16BE();
+        $reader->getData(2); // Profie Version Reserved
+        $header['ProfileDeviceClass'] = $reader->getData(4);
+        $header['ColorSpace'] = $reader->getData(4);
+        $header['ConnectionSpace'] = $reader->getData(4);
+        $header['DataTimeCreated'] = $reader->getDateTimeNumber();
+        $header['acspSignature'] = $reader->getData(4);
+        $header['PrimaryPlatform'] = $reader->getData(4);
+        $cmmOptions1 = $reader->getUI16BE();
+        $cmmOptions2 = $reader->getUI16BE();
         $header['CMMOptions'] =
             array (
                    'EmbedProfile' => ($cmmOptions1 & 1) != 0,
                    'Independently' => ($cmmOptions1 & 2) != 0,
                    );
-        $header['DeviceManufacturer'] = $bitin->getUI32BE();
-        $header['DeviceModel'] = $bitin->getUI32BE();
-        $deviceAttribute1 = $bitin->getUI32BE();
-        $deviceAttribute2 = $bitin->getUI32BE();
+        $header['DeviceManufacturer'] = $reader->getUI32BE();
+        $header['DeviceModel'] = $reader->getUI32BE();
+        $deviceAttribute1 = $reader->getUI32BE();
+        $deviceAttribute2 = $reader->getUI32BE();
         $header['DeviceAttribute'] =
             array (
                    'ReflectiveOrTransparency' => ($deviceAttribute1 & 1) != 0,
                    'GlossyOnMatte'            => ($deviceAttribute1 & 2) != 0,
                    );
-        $header['RenderingIntent'] = $bitin->getUI32BE();
-        $header['XYZvalueD50'] = $bitin->getXYZNumber();
+        $header['RenderingIntent'] = $reader->getUI32BE();
+        $header['XYZvalueD50'] = $reader->getXYZNumber();
 
-        $header['CreatorID'] = $bitin->getUI32BE();
+        $header['CreatorID'] = $reader->getUI32BE();
         $this->_header = $header;
         // Body
-        $bitin->setOffset(self::HEADER_SIZE, 0);
-        $tagTableCount = $bitin->getUI32BE();
+        $reader->setOffset(self::HEADER_SIZE, 0);
+        $tagTableCount = $reader->getUI32BE();
         $tagTable = array();
         for ($i = 0 ; $i < $tagTableCount ; $i++) {
             $tagTable []=
                 array(
-                      'Signature' => $bitin->getData(4),
-                      'Offset' => $bitin->getUI32BE(),
-                      'Size' => $bitin->getUI32BE(),
+                      'Signature' => $reader->getData(4),
+                      'Offset' => $reader->getUI32BE(),
+                      'Size' => $reader->getUI32BE(),
                  );
         }
         $this->_tagTable = $tagTable;
@@ -93,7 +93,7 @@ class IO_ICC {
                   );
         foreach ($tagTable as $tagInfo) {
             $tag = new IO_ICC_Tag($iccInfo);
-            $tag->parse($bitin, $tagInfo);
+            $tag->parse($reader, $tagInfo);
             $this->_tags[] = $tag;
         }
     }
