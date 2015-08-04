@@ -3,7 +3,7 @@
 require_once dirname(__FILE__).'/../Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 
-class IO_ICC_Tag_TextDesc extends IO_ICC_Tag_Base {
+class IO_ICC_Tag_Desc extends IO_ICC_Tag_Base {
     const DESCRIPTION = 'Text Description';
     var $ascii = null;
     var $unicodeLanguage = null;

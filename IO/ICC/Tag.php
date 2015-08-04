@@ -16,7 +16,7 @@ class IO_ICC_Tag {
     static $tagMap =
         array(
               // signature => array(klass)
-              'desc' => array('klass' => 'TextDesc', "version" => 2),
+              'desc' => array('klass' => 'Desc', "version" => 2),
               'curv' => array('klass' => 'Curve', "version" => 4),
               'XYZ ' => array('klass' => 'XYZ', "version" => 2),
               );
