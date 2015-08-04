@@ -1,6 +1,6 @@
 <?php
 
-require_once 'IO/Bit.php';
+require_once 'IO/ICC/Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Tag_TextDesc extends IO_ICC_Tag_Base {
@@ -11,7 +11,7 @@ class IO_ICC_Tag_TextDesc extends IO_ICC_Tag_Base {
     var $scriptCode = null;
     var $macintosh = null;
     function parseContent($type, $content, $opts = array()) {
-        $reader = new IO_Bit();
+        $reader = new IO_ICC_Bit();
     	$reader->input($content);
         $this->type = $type;
         $reader->incrementOffset(8, 0); // skip head 8 bytes

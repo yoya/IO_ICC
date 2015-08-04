@@ -4,7 +4,7 @@
   (c) 2015/08/02- yoya@awm.jp
 */
 
-require_once 'IO/Bit.php';
+require_once dirname(__FILE__).'/ICC/Bit.php';
 require_once dirname(__FILE__).'/ICC/Tag.php';
 
 $IO_ICC_Header_Type =
@@ -29,32 +29,10 @@ class IO_ICC {
         global $IO_ICC_Header_Type;
         $this->_headerType = $IO_ICC_Header_Type;
     }
-    function getS15Fixed16Number($bitin) {
-        return $bitin->getSI32BE() / 0x10000;
-    }
-    function getDateTimeNumber($bitin) {
-        $dateTime = array(
-                          'Year' => $bitin->getUI16BE(),
-                          'Month' => $bitin->getUI16BE(),
-                          'Day' => $bitin->getUI16BE(),
-                          'Hours' => $bitin->getUI16BE(),
-                          'Minutes' => $bitin->getUI16BE(),
-                          'Seconds' => $bitin->getUI16BE(),
-                          );
-        return $dateTime;
-    }
-    function getXYZNumber($bitin) {
-        $xyz =
-            array(
-                  'X' => $this->getS15Fixed16Number($bitin),
-                  'Y' => $this->getS15Fixed16Number($bitin),
-                  'Z' => $this->getS15Fixed16Number($bitin),
-                  );
-        return $xyz;
-    }
+    //
     function parse($iccdata) {
         $this->_iccdata = $iccdata;
-        $bitin = new IO_Bit();
+        $bitin = new IO_ICC_Bit();
         $bitin->input($iccdata);
         // Header
         if ($bitin->hasNextData(self::HEADER_SIZE) === false) {
@@ -72,7 +50,7 @@ class IO_ICC {
         $header['ProfileDeviceClass'] = $bitin->getData(4);
         $header['ColorSpace'] = $bitin->getData(4);
         $header['ConnectionSpace'] = $bitin->getData(4);
-        $header['DataTimeCreated'] = $this->getDateTimeNumber($bitin);
+        $header['DataTimeCreated'] = $bitin->getDateTimeNumber();
         $header['acspSignature'] = $bitin->getData(4);
         $header['PrimaryPlatform'] = $bitin->getData(4);
         $cmmOptions1 = $bitin->getUI16BE();
@@ -92,7 +70,7 @@ class IO_ICC {
                    'GlossyOnMatte'            => ($deviceAttribute1 & 2) != 0,
                    );
         $header['RenderingIntent'] = $bitin->getUI32BE();
-        $header['XYZvalueD50'] = $this->getXYZNumber($bitin);
+        $header['XYZvalueD50'] = $bitin->getXYZNumber();
 
         $header['CreatorID'] = $bitin->getUI32BE();
         $this->_header = $header;
