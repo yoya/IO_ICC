@@ -106,6 +106,8 @@ class IO_ICC {
                 foreach ($value as $k => $v) {
                     if (is_bool($v)) {
                         echo " $k:".($v?"true":"false");
+                    } else if (is_float($v)) {
+                        printf(" %s:%.4f", $k, $v);
                     } else {
                         echo " $k:$v";
                     }
@@ -114,8 +116,10 @@ class IO_ICC {
             } else {
                 if (is_bool($value)) {
                     echo "    $key:".($value?"true":"false");
+                } else if (is_float($value)) {
+                    printf("    %s:%.4f", $key, $value);
                 } else {
-                    echo "    $key: $value";
+                    echo "    $key:$value";
                 }
                 if (isset($this->_headerType[$key][$value])) {
                     $typestr = $this->_headerType[$key][$value];
