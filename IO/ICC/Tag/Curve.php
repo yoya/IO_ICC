@@ -28,7 +28,7 @@ class IO_ICC_Tag_Curve extends IO_ICC_Tag_Base {
         $values = $this->CurveValues;
         if (count($values) === 1) {
             $value = $values[0];
-            echo " $value (gamma value)";
+            printf(" %.4f (gamma value)", $value);
         } else {
             foreach ($values as $idx => $value) {
                 echo " [$idx]$value";
