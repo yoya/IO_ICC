@@ -73,7 +73,7 @@ class IO_ICC_Tag_Desc extends IO_ICC_Tag_Base {
             $macintoshCount = strlen($this->macintosh);
             $writer->putUI8($macintoshCount);
             $macintosh_0filled = str_pad($this->macintosh, 67, "\0");
-            $writer->putData($macintosh);
+            $writer->putData($macintosh_0filled);
         }
     	return $writer->output();
     }
