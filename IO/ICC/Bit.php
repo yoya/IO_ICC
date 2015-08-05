@@ -34,6 +34,14 @@ class IO_ICC_Bit extends IO_Bit {
                           );
         return $dateTime;
     }
+    function putDateTimeNumber($datetime) {
+        $this->putUI16BE($datetime['Year']);
+        $this->putUI16BE($datetime['Month']);
+        $this->putUI16BE($datetime['Day']);
+        $this->putUI16BE($datetime['Hours']);
+        $this->putUI16BE($datetime['Minutes']);
+        $this->putUI16BE($datetime['Seconds']);
+    }
     function getXYZNumber() {
         $xyz =
             array(
