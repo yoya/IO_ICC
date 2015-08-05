@@ -26,15 +26,24 @@ class IO_ICC_Tag_Curve extends IO_ICC_Tag_Base {
     function dumpContent($type, $opts = array()) {
         echo "        CurveValues:";
         $values = $this->CurveValues;
-        if (count($values) === 1) {
+        $count = count($values);
+        if ($count === 1) {
             $value = $values[0];
             printf(" %.4f (gamma value)", $value);
+            echo PHP_EOL;
         } else {
+            $line_unit = 16;
+            echo PHP_EOL;
             foreach ($values as $idx => $value) {
-                echo " [$idx]$value";
+                if (($idx % $line_unit) === 0){
+                    echo "\t[$idx]";
+                }
+                echo " $value";
+                if ((($idx % $line_unit) === ($line_unit - 1)) || ($idx === ($count - 1))) {
+                    echo PHP_EOL;
+                }
             }
         }
-        echo PHP_EOL;
     }
 
     function buildContent($type, $opts = array()) {
