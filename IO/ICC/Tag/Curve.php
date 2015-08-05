@@ -47,7 +47,7 @@ class IO_ICC_Tag_Curve extends IO_ICC_Tag_Base {
     }
 
     function buildContent($type, $opts = array()) {
-        $writer = new IO_Bit();
+        $writer = new IO_ICC_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
@@ -55,7 +55,7 @@ class IO_ICC_Tag_Curve extends IO_ICC_Tag_Base {
         $count = count($values);
         $writer->putUI32BE($count);
         if ($count === 1) {
-            $writer->putU8Fixed8Number($value);
+            $writer->putU8Fixed8Number($values[0]);
         } else {
             foreach ($values as $value)  {
                 $writer->putUI16BE($value);
