@@ -1,9 +1,9 @@
 <?php
 
 abstract class IO_ICC_Tag_Base {
-    var $swfInfo;
+    var $_iccInfo;
     function __construct($iccInfo = null) {
-        $this->swfInfo = $iccInfo;
+        $this->_iccInfo = $iccInfo;
     }
     abstract function parseContent($type, $content, $opts = array());
     abstract function dumpContent($type, $opts = array());
