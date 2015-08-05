@@ -97,6 +97,69 @@ class IO_ICC {
             $this->_tags[] = $tag;
         }
     }
+
+    function build() {
+        $writer = new IO_ICC_Bit();
+        // Header
+        $header = $this->_header;
+        $writer->putUI32BE(0);
+        $writer->putUI32BE($header['CMMType']);
+        $writer->putUIBCD8($header['ProfileVersion']['Major']);
+        $writer->putUIBCD8($header['ProfileVersion']['Minor']);
+        $writer->putData("\0\0", 2); // Profie Version Reserved
+        $writer->putData($header['ProfileDeviceClass'], 4);
+        $writer->putData($header['ColorSpace'], 4);
+        $writer->putData($header['ConnectionSpace'], 4);
+        $writer->putDateTimeNumber($header['DataTimeCreated']);
+        $writer->putData($header['acspSignature'], 4);
+        $writer->putData($header['PrimaryPlatform'], 4);
+        $cmmOptions1 = 
+            ($header['CMMOptions']['EmbedProfile']?1:0) |
+            ($header['CMMOptions']['Independently']?2:0);
+        $cmmOptions2 = 0;
+        $writer->putUI16BE($cmmOptions1);
+        $writer->putUI16BE($cmmOptions2);
+        $writer->putUI32BE($header['DeviceManufacturer']);
+        $writer->putUI32BE($header['DeviceModel']);
+        $deviceAttribute1 = 
+            ($header['DeviceAttribute']['ReflectiveOrTransparency']?1:0) |
+            ($header['DeviceAttribute']['GlossyOnMatte']?2:0);
+        $deviceAttribute2 = 0;
+        $writer->putUI32BE($deviceAttribute1);
+        $writer->putUI32BE($deviceAttribute2);
+        $writer->putUI32BE($header['RenderingIntent']);
+        $writer->putXYZNumber($header['XYZvalueD50']);
+
+        $writer->putUI32BE($header['CreatorID']);
+        // Body
+        list($byte_offset, $dummy) = $writer->getOffset();
+        $writer->putData('', self::HEADER_SIZE - $byte_offset, "\0");
+        //
+        $tagTable = $this->_tagTable;
+        $tagTableCount = count($tagTable);
+        $writer->putUI32BE($tagTableCount);
+        list($tableOffset, $dummy) = $writer->getOffset();
+        foreach ($tagTable as $tagInfo) {
+            $writer->putData($tagInfo['Signature'], 4);
+            $writer->putUI32BE(0); // Offset
+            $writer->putUI32BE(0); // Size
+        }
+        $tags = $this->_tags;
+        $currTableOffset = $tableOffset;
+        foreach ($tags as $idx => $tag) {
+            list($offset, $dummy) = $writer->getOffset();
+            $writer->setUI32BE($offset, $currTableOffset + 4);
+            $tagData = $tag->build();
+            $writer->putData($tagData);
+            list($next_offset, $dummy) = $writer->getOffset();
+            $writer->setUI32BE($next_offset - $offset, $currTableOffset + 8);
+            $currTableOffset += 12;
+        }
+        $data = $writer->output();
+        $writer->setUI32BE(strlen($data), 0);
+        return $writer->output();
+    }
+
     function dump($opts = array()) {
         echo "Header:".PHP_EOL;
         $header = $this->_header;

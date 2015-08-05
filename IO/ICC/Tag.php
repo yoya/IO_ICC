@@ -45,7 +45,13 @@ class IO_ICC_Tag {
             $this->tag->dumpContent($this->type, $opts);
         }
     }
-
+    function build($opts = array()) {
+        $type = $this->type;
+        if (is_null($this->content)) {
+            $this->content = $this->buildTagContent();
+        }
+        return $this->content;
+    }
     function parseTagContent($opts = array()) {
         if (is_null($this->tag) === false) {
             return true;
@@ -66,6 +72,13 @@ class IO_ICC_Tag {
         $obj->parseContent($type, $this->content, $opts);
         $this->tag = $obj;
         return true;
+    }
+    function buildTagContent() {
+        if ((is_null($this->content) === false)) {
+            return $this->content;
+        }
+        $type = $this->type;
+        return $this->tag->buildContent($type);
     }
 }
 
