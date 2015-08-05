@@ -62,7 +62,7 @@ class IO_ICC_Tag_Desc extends IO_ICC_Tag_Base {
         if (is_null($this->unicode)) {
             $writer->putUI32BE(0);
         } else {
-            $ucs2bs =mb_convert_encoding($ucs2be, 'UCS-2BE', 'UTF-8');
+            $ucs2bs = mb_convert_encoding($ucs2be, 'UCS-2BE', 'UTF-8');
             $writer->putUI32BE(strlen($ucs2bs) / 2);
             $writer->putData($ucs2bs);
         }
