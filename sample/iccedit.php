@@ -70,9 +70,18 @@ function displayKeyValue($key_value, $key_prefix) {
 
 function setKeyValue($keys, $value, &$data) {
     $key = $keys[0];
+    if (isset($data->$key))  {
+        $next_data = & $data->$key;
+    } else  if (isset($data[$key]))  {
+        $next_data = & $data[$key];
+    } else {
+        fprintf(STDERR, "key($key) not found\n");
+        print_r($data);
+        return false;
+    }
     if (count($keys) === 1) {
         //        echo "setKeyValue(".join('.',$keys).", $value)";
-        switch (gettype($data->$key))  {
+        switch (gettype($next_data))  {
         case "boolean":
             $value = $value?true:false;
             break;
@@ -86,11 +95,13 @@ function setKeyValue($keys, $value, &$data) {
             $value = explode(',', $value);
             break;
         }
-        $data->$key = $value;
+        $next_data = $value;
     } else {
         array_shift($keys);
-        setKeyValue($keys, $value, $data->$key);
+        $ret = setKeyValue($keys, $value, $next_data);
+        return $ret;
     }
+    return true;
 }
 
 if ($argc == 3) {
@@ -99,7 +110,11 @@ if ($argc == 3) {
     foreach (array_slice($argv, 3) as $kv) {
         list($key, $value) = explode(':', $kv);
         $keys = explode('.', $key);
-        setKeyValue($keys, $value, $data);
+        $ret = setKeyValue($keys, $value, $data);
+        if ($ret !== true) {
+            fprintf(STDERR, "setKeyValue($key, ...) failed\n");
+            exit(1);
+        }
     }
     $tag->content = null; // rebuild
     echo $icc->build();
