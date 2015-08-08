@@ -13,7 +13,7 @@ class IO_ICC_Tag {
     var $signature = null;
     var $tag = null;
     //
-    static $tagMap =
+    static $typeMap =
         array(
               // signature => array(klass)
               'desc' => array('klass' => 'Desc', "version" => 2),
@@ -25,9 +25,9 @@ class IO_ICC_Tag {
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
     }
-    function getTagInfo($tagType, $key) {
-        if (isset(self::$tagMap[$tagType][$key])) {
-            return self::$tagMap[$tagType][$key];
+    function getTypeInfo($tagType, $key) {
+        if (isset(self::$typeMap[$tagType][$key])) {
+            return self::$typeMap[$tagType][$key];
         }
         return false;
     }
@@ -61,12 +61,12 @@ class IO_ICC_Tag {
             throw new IO_ICC_Exception("no tag and no content in ".var_export($this, true));
         }
         $type = $this->type;
-        $klass = self::getTagInfo($type, 'klass');
+        $klass = self::getTypeInfo($type, 'klass');
         if ($klass === false) {
             return false; // no parse
         }
-        require_once dirname(__FILE__)."/Tag/$klass.php";
-        $klass = "IO_ICC_Tag_$klass";
+        require_once dirname(__FILE__)."/Type/$klass.php";
+        $klass = "IO_ICC_Type_$klass";
         $obj = new $klass($this->iccInfo);
         $opts['Version'] = $this->iccInfo['Version'];
         $opts['type'] = $type;
