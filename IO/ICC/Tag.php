@@ -20,6 +20,7 @@ class IO_ICC_Tag {
               'curv' => array('klass' => 'Curve', "version" => 4),
               'XYZ ' => array('klass' => 'XYZ', "version" => 2),
               'text' => array('klass' => 'Text', "version" => 2),
+              'mluc' => array('klass' => 'MLUC', "version" => 4),
               );
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
