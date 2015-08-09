@@ -5,16 +5,17 @@ require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_XYZ extends IO_ICC_Type_Base {
     const DESCRIPTION = 'XYZ Type';
+    var $type = null;
     var $xyz = null;
-    function parseContent($type, $content, $opts = array()) {
+    function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
-        $this->type = $type;
-        $reader->incrementOffset(8, 0); // skip head 8 bytes
+        $this->type = $reader->getData(4);
+        $reader->incrementOffset(4, 0); // skip
         $this->xyz = $reader->getXYZNumber();
     }
 
-    function dumpContent($type, $opts = array()) {
+    function dumpContent($opts = array()) {
         echo "        XYZ:";
         foreach ($this->xyz as $key => $value) {
             printf(" %s:%.4f", $key, $value);
@@ -22,7 +23,7 @@ class IO_ICC_Type_XYZ extends IO_ICC_Type_Base {
         echo PHP_EOL;
     }
 
-    function buildContent($type, $opts = array()) {
+    function buildContent($opts = array()) {
         $writer = new IO_ICC_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");

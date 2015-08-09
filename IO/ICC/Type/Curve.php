@@ -5,12 +5,13 @@ require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
     const DESCRIPTION = 'Curve Type';
+    var $type = null;
     var $CurveValues = null;
-    function parseContent($type, $content, $opts = array()) {
+    function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
-        $this->type = $type;
-        $reader->incrementOffset(8, 0); // skip head 8 bytes
+        $this->type = $reader->getData(4);
+        $reader->incrementOffset(4, 0); // skip
         $count = $reader->getUI32BE();
         $values = array();
         if ($count === 1) {
@@ -23,7 +24,7 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
         $this->CurveValues = $values;
     }
 
-    function dumpContent($type, $opts = array()) {
+    function dumpContent($opts = array()) {
         echo "        CurveValues:";
         $values = $this->CurveValues;
         $count = count($values);
@@ -46,7 +47,7 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
         }
     }
 
-    function buildContent($type, $opts = array()) {
+    function buildContent($opts = array()) {
         $writer = new IO_ICC_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");

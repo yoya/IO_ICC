@@ -5,12 +5,13 @@ require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
     const DESCRIPTION = 'MultiLocalazed Unicode';
+    var $type = null;
     var $strings = null;
-    function parseContent($type, $content, $opts = array()) {
+    function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
-        $this->type = $type;
-        $reader->incrementOffset(8, 0); // skip head 8 bytes
+        $this->type = $reader->getData(4);
+        $reader->incrementOffset(4, 0); // skip
         $recordNum = $reader->getUI32BE();
         $recordSize = $reader->getUI32BE();
         $records = array();
@@ -35,7 +36,7 @@ class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
         $this->records = $records;
     }
 
-    function dumpContent($type, $opts = array()) {
+    function dumpContent($opts = array()) {
         foreach ($this->records as $record) {
             $langCode = $record['LangCode'];
             $countryCode = $record['CountryCode'];
@@ -44,7 +45,7 @@ class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
         }
     }
 
-    function buildContent($type, $opts = array()) {
+    function buildContent($opts = array()) {
         $writer = new IO_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");

@@ -6,6 +6,7 @@
 
 require_once dirname(__FILE__).'/../ICC.php';
 require_once dirname(__FILE__).'/../ICC/Exception.php';
+require_once dirname(__FILE__).'/Type.php';
 
 class IO_ICC_Tag {
     var $tagInfo = null;
@@ -13,24 +14,8 @@ class IO_ICC_Tag {
     var $signature = null;
     var $tag = null;
     //
-    static $typeMap =
-        array(
-              // signature => array(klass)
-              'desc' => array('klass' => 'Desc', "version" => 2),
-              'curv' => array('klass' => 'Curve', "version" => 4),
-              'XYZ ' => array('klass' => 'XYZ', "version" => 2),
-              'text' => array('klass' => 'Text', "version" => 2),
-              'mluc' => array('klass' => 'MLUC', "version" => 4),
-              'sf32' => array('klass' => 'SF32'),
-              );
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
-    }
-    function getTypeInfo($tagType, $key) {
-        if (isset(self::$typeMap[$tagType][$key])) {
-            return self::$typeMap[$tagType][$key];
-        }
-        return false;
     }
     function parse($reader, $tagInfo, $opts = array()) {
         $this->tagInfo = $tagInfo;
@@ -38,13 +23,14 @@ class IO_ICC_Tag {
         $reader->setOffset($tagInfo['Offset'], 0);
         $this->content = $reader->getData($tagInfo['Size']);
         $this->type = substr($this->content, 0, 4);
+
     }
     function dump($opts = array()) {
         $tagInfo = $this->tagInfo;
         echo "    Signature:{$tagInfo['Signature']} Type:{$this->type}";
         echo " (Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']})".PHP_EOL;
         if ($this->parseTagContent($opts)) {
-            $this->tag->dumpContent($this->type, $opts);
+            $this->tag->dumpContent($opts);
         }
     }
     function build($opts = array()) {
@@ -61,18 +47,11 @@ class IO_ICC_Tag {
         if (is_null($this->content)) {
             throw new IO_ICC_Exception("no tag and no content in ".var_export($this, true));
         }
-        $type = $this->type;
-        $klass = self::getTypeInfo($type, 'klass');
-        if ($klass === false) {
-            return false; // no parse
+        $tag = IO_ICC_Type::makeType($this->content, $this->iccInfo);
+        if ($tag === false) {
+            return false;
         }
-        require_once dirname(__FILE__)."/Type/$klass.php";
-        $klass = "IO_ICC_Type_$klass";
-        $obj = new $klass($this->iccInfo);
-        $opts['Version'] = $this->iccInfo['Version'];
-        $opts['type'] = $type;
-        $obj->parseContent($type, $this->content, $opts);
-        $this->tag = $obj;
+        $this->tag = $tag;
         return true;
     }
     function buildTagContent() {

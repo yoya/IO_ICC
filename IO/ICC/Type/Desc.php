@@ -5,16 +5,17 @@ require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
     const DESCRIPTION = 'Text Description';
+    var $type = null;
     var $ascii = null;
     var $unicodeLanguage = null;
     var $unicode = null;
     var $scriptCode = null;
     var $macintosh = null;
-    function parseContent($type, $content, $opts = array()) {
+    function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
-        $this->type = $type;
-        $reader->incrementOffset(8, 0); // skip head 8 bytes
+        $this->type = $reader->getData(4);
+        $reader->incrementOffset(4, 0); // skip
         $asciiCount = $reader->getUI32BE();
         if ($asciiCount > 0) {
             $this->ascii = $reader->getData($asciiCount);
@@ -33,7 +34,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         }
     }
 
-    function dumpContent($type, $opts = array()) {
+    function dumpContent($opts = array()) {
         if (is_null($this->ascii) === false) {
             echo "\tASCII: {$this->ascii}".PHP_EOL;
         }
@@ -47,7 +48,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         }
     }
 
-    function buildContent($type, $opts = array()) {
+    function buildContent($opts = array()) {
         $writer = new IO_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
