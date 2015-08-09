@@ -170,7 +170,7 @@ class IO_ICC {
                     if (is_bool($v)) {
                         echo " $k:".($v?"true":"false");
                     } else if (is_float($v)) {
-                        printf(" %s:%.4f", $k, $v);
+                        printf(" %s:%.04f", $k, round($v, 4));
                     } else {
                         echo " $k:$v";
                     }
@@ -180,7 +180,7 @@ class IO_ICC {
                 if (is_bool($value)) {
                     echo "    $key:".($value?"true":"false");
                 } else if (is_float($value)) {
-                    printf("    %s:%.4f", $key, $value);
+                    printf("    %s:%.04f", $key, round($value, 4));
                 } else {
                     echo "    $key:$value";
                 }
