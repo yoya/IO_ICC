@@ -21,6 +21,7 @@ class IO_ICC_Tag {
               'XYZ ' => array('klass' => 'XYZ', "version" => 2),
               'text' => array('klass' => 'Text', "version" => 2),
               'mluc' => array('klass' => 'MLUC', "version" => 4),
+              'sf32' => array('klass' => 'SF32'),
               );
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
