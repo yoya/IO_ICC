@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": ">=5.1.0",
-        "yoya/io_bit": "~2.2.1"
+        "yoya/io_bit": "~2.3"
     },
     "autoload": {
         "psr-0": { "IO_ICC": "." }
