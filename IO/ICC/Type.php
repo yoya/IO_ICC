@@ -17,7 +17,7 @@ class IO_ICC_Type {
               'text' => array('klass' => 'Text', "version" => 2),
               'mluc' => array('klass' => 'MLUC', "version" => 4),
               'sf32' => array('klass' => 'SF32'),
-              // 'mAB ' => array('klass' => 'MFAB'),
+              'mAB ' => array('klass' => 'MFAB'),
               );
     static function getTypeInfo($tagType, $key) {
         if (isset(self::$typeMap[$tagType][$key])) {
@@ -25,7 +25,7 @@ class IO_ICC_Type {
         }
         return false;
     }
-    static function makeType($content, $iccInfo) {
+    static function makeType($content, $iccInfo, $count = 1) {
         $type = substr($content, 0, 4);
         $klass = self::getTypeInfo($type, 'klass');
         if ($klass === false) {
@@ -37,6 +37,7 @@ class IO_ICC_Type {
         $opts['Version'] = $iccInfo['Version'];
         $opts['type'] = $type;
         $obj->parseContent($content, $opts);
+        $obj->_contentLength = strlen($content);
         return $obj;
     }
 }

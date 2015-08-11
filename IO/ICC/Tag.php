@@ -29,6 +29,7 @@ class IO_ICC_Tag {
         $tagInfo = $this->tagInfo;
         echo "    Signature:{$tagInfo['Signature']} Type:{$this->type}";
         echo " (Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']})".PHP_EOL;
+        $opts['level'] = 1;
         if ($this->parseTagContent($opts)) {
             $this->tag->dumpContent($opts);
         }

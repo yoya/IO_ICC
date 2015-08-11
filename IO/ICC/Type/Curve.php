@@ -21,11 +21,13 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
                 $values []= $reader->getUI16BE();
             }
         }
+        list($this->_contentLength, $dummy)  = $reader->getOffset();
         $this->CurveValues = $values;
     }
 
     function dumpContent($opts = array()) {
-        echo "        CurveValues:";
+        $this->echoIndentSpace($opts);
+        echo "CurveValues:";
         $values = $this->CurveValues;
         $count = count($values);
         if ($count === 1) {
@@ -37,7 +39,8 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
             echo PHP_EOL;
             foreach ($values as $idx => $value) {
                 if (($idx % $line_unit) === 0){
-                    echo "\t[$idx]";
+                    $this->echoIndentSpace($opts);
+                    echo "[$idx]";
                 }
                 echo " $value";
                 if ((($idx % $line_unit) === ($line_unit - 1)) || ($idx === ($count - 1))) {
