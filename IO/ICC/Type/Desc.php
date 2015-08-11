@@ -32,6 +32,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if ($macintoshCount > 0) {
             $this->macintosh = $reader->getData($macintoshCount);
         }
+        // list($this->_contentLength, $dummy)  = $reader->getOffset();
     }
 
     function dumpContent($opts = array()) {
@@ -63,9 +64,9 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if (is_null($this->unicode)) {
             $writer->putUI32BE(0);
         } else {
-            $ucs2bs = mb_convert_encoding($ucs2be, 'UCS-2BE', 'UTF-8');
-            $writer->putUI32BE(strlen($ucs2bs) / 2);
-            $writer->putData($ucs2bs);
+            $ucs2be = mb_convert_encoding($this->unicode, 'UCS-2BE', 'UTF-8');
+            $writer->putUI32BE(strlen($ucs2be) / 2);
+            $writer->putData($ucs2be);
         }
         $writer->putUI16BE($this->scriptCode);
         if (is_null($this->macintosh)) {
