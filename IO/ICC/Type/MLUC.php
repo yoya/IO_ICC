@@ -31,7 +31,8 @@ class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
         }
         foreach ($records as &$record) {
             $reader->setOffset($record['_offset'], 0);
-            $record['String'] = $reader->getData($record['_size']);
+            $ucs2be = $reader->getData($record['_size']);
+            $record['String'] = mb_convert_encoding($ucs2be, 'UTF-8', 'UCS-2BE');
         }
         $this->records = $records;
     }
@@ -62,11 +63,12 @@ class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
         $recordOffsetCurr = $recordOffset;
         foreach ($this->records as $record) {
             $string = $record['String'];
-            $size = strlen($string);
+            $ucs2be = mb_convert_encoding($string, 'UCS-2BE', 'UTF-8');
+            $size = strlen($ucs2be);
             list($offset, $dummy) = $writer->getOffset();
             $writer->setUI32BE($size, $recordOffsetCurr + 4);
             $writer->setUI32BE($offset, $recordOffsetCurr + 8);
-            $writer->putData($string);
+            $writer->putData($ucs2be);
             $recordOffsetCurr += 12;
         }
     	return $writer->output();
