@@ -64,11 +64,46 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $mCurveContent = substr($mCurveContent, $mCurve->getContentLength());
         }
         $this->mCurves = $mCurves;
+        // CLUT
+        if ($offsetToCLUT === 0) {
+            $this->clut = null;
+        } else {
+            $reader->setOffset($offsetToCLUT, 0);
+            $grid = array();
+            for ($i = 0 ; $i < $this->nInput; $i++ ) {
+                $grid []= $reader->getUI8();
+            }
+            $reader->setOffset($offsetToCLUT + 16, 0);
+            $precision = $reader->getUI8();
+            $reader->incrementOffset(3, 0); // reserved for padding
+            $count = $this->nInput;
+            foreach ($grid as $g) {
+                $count *= $g;
+            }
+            $data = array();
+            if ($precision === 1) {
+                for ($i = 0 ; $i < $count ; $i++) {
+                    $data []= $reader->getUI16BE();
+                } 
+            } else {
+                for ($i = 0 ; $i < $count ; $i++) {
+                    $data []= $reader->getUI16BE();
+                }
+            }
+            $this->clut =
+                array(
+                      'Grid' => $grid,
+                      'Precision' => $precision,
+                      'Data' => $data,
+                      );
+        }
     }
 
     function dumpContent($opts = array()) {
+        $nInput = $this->nInput;
+        $nOutput = $this->nOutput;
         $this->echoIndentSpace($opts);
-        echo "nInput:{$this->nInput} nOutput:{$this->nOutput}".PHP_EOL;
+        echo "nInput:{$this->nInput} nOutput:{$nOutput}".PHP_EOL;
         $opts2 = array_merge($opts, array('level' => $opts['level']+1));
         //
         $this->echoIndentSpace($opts);
@@ -96,6 +131,44 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $this->echoIndentSpace($opts2);
             echo "Type:{$mCurve->type}\n";
             $mCurve->dumpContent($opts2);
+        }
+        // CLUT
+        $this->echoIndentSpace($opts);
+        echo "CLUT:".PHP_EOL;
+        if (is_null($this->clut) === false) {
+            $this->echoIndentSpace($opts2);
+            $clut = $this->clut;
+            echo "Grids:";
+            for ($i = 0 ; $i < $nInput; $i++ ) {
+                echo " ".$clut['Grid'][$i];
+            }
+            echo PHP_EOL;
+            $this->echoIndentSpace($opts2);
+            $precision = $clut['Precision'];
+            echo "Precision:$precision".PHP_EOL;
+            $this->echoIndentSpace($opts2);
+            $data = $clut['Data'];
+            $dataLen = count($data);
+            $gridNum = $dataLen / $nOutput;
+            echo "Data(gridNum=$gridNum):".PHP_EOL;
+            for ($i = 0 ; $i < $nOutput ; $i++) {
+                $this->echoIndentSpace($opts2);
+                echo "  [$i]:";
+                if ($gridNum < 16) {
+                    for ($j = 0 ; $j < $gridNum ; $j++) {
+                        echo " ".$data[$nInput*$j + $i];
+                    }
+                } else {
+                    for ($j = 0 ; $j < 8 ; $j++) {
+                        echo " ".$data[$nInput*$j + $i];
+                    }
+                    echo " ...";
+                    for ($j = $gridNum - 8 ; $j < $gridNum ; $j++) {
+                        echo " ".$data[$nInput*$j + $i];
+                    }
+                }
+                echo PHP_EOL;
+            }
         }
     }
 
