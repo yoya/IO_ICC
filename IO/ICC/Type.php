@@ -12,7 +12,8 @@ class IO_ICC_Type {
         array(
               // signature => array(klass)
               'desc' => array('klass' => 'Desc', "version" => 2),
-              'curv' => array('klass' => 'Curve', "version" => 4),
+              'curv' => array('klass' => 'Curve'),
+              'para' => array('klass' => 'PCurve'),
               'XYZ ' => array('klass' => 'XYZ', "version" => 2),
               'text' => array('klass' => 'Text', "version" => 2),
               'mluc' => array('klass' => 'MLUC', "version" => 4),
