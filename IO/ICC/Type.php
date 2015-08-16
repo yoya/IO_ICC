@@ -19,6 +19,7 @@ class IO_ICC_Type {
               'mluc' => array('klass' => 'MLUC', "version" => 4),
               'sf32' => array('klass' => 'SF32'),
               'mAB ' => array('klass' => 'MFAB'),
+              'mBA ' => array('klass' => 'MFBA'),
               );
     static function getTypeInfo($tagType, $key) {
         if (isset(self::$typeMap[$tagType][$key])) {
