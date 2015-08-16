@@ -9,8 +9,11 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
     var $_iccInfo = null;
     var $type = null;
     var $nInput, $nOutput;
-    var $bCurve = null;
+    var $bCurves = null;
     var $matrix = null;
+    var $mCurves = null;
+    var $clut = null;
+    var $aCurves = null;
     function __construct($iccInfo) {
         $this->_iccInfo = $iccInfo;
     }
@@ -29,41 +32,53 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         $offsetToCLUT = $reader->getUI32BE();
         $offsetToACurve = $reader->getUI32BE();
         //        var_dump($offsetToBCurve, $offsetToMatrix, $offsetToMCurve, $offsetToCLUT, $offsetToACurve);
-        // B Curve
-        $reader->setOffset($offsetToBCurve, 0);
-        $bCurveContent = $reader->getData($offsetToMatrix - $offsetToBCurve);
-        $bCurves = array();
-        for ($i = 0 ; $i < $this->nInput; $i++ ) {
-            $bCurve = IO_ICC_Type::makeType($bCurveContent, $this->_iccInfo);
-            if ($bCurve === false) {
-                break;
+        // B Curves
+        if ($offsetToBCurve === 0) {
+            $this->bCurves = null;
+        } else {
+            $reader->setOffset($offsetToBCurve, 0);
+            $bCurveContent = $reader->getData($offsetToMatrix - $offsetToBCurve);
+            $bCurves = array();
+            for ($i = 0 ; $i < $this->nInput; $i++ ) {
+                $bCurve = IO_ICC_Type::makeType($bCurveContent, $this->_iccInfo);
+                if ($bCurve === false) {
+                    break;
+                }
+                $bCurve->parseContent($bCurveContent);
+                $bCurves []= $bCurve;
+                $bCurveContent = substr($bCurveContent, $bCurve->getContentLength());
             }
-            $bCurve->parseContent($bCurveContent);
-            $bCurves []= $bCurve;
-            $bCurveContent = substr($bCurveContent, $bCurve->getContentLength());
+            $this->bCurves = $bCurves;
         }
-        $this->bCurves = $bCurves;
         // Matrix
-        $reader->setOffset($offsetToMatrix, 0);
-        $matrix = array();
-        for ($i = 0 ; $i < 12 ; $i++) {
-            $matrix []= $reader->getS15Fixed16Number();
-        }
-        $this->matrix = $matrix;
-        // M Curve
-        $reader->setOffset($offsetToMCurve, 0);
-        $mCurveContent = $reader->getData($offsetToMatrix - $offsetToMCurve);
-        $mCurves = array();
-        for ($i = 0 ; $i < $this->nOutput; $i++ ) {
-            $mCurve = IO_ICC_Type::makeType($mCurveContent, $this->_iccInfo);
-            if ($mCurve === false) {
-                break;
+        if ($offsetToMatrix === 0) {
+            $this->matrix = null;
+        } else {
+            $reader->setOffset($offsetToMatrix, 0);
+            $matrix = array();
+            for ($i = 0 ; $i < 12 ; $i++) {
+                $matrix []= $reader->getS15Fixed16Number();
             }
-            $mCurve->parseContent($mCurveContent);
-            $mCurves []= $mCurve;
-            $mCurveContent = substr($mCurveContent, $mCurve->getContentLength());
+            $this->matrix = $matrix;
         }
-        $this->mCurves = $mCurves;
+        // M Curves
+        if ($offsetToMCurve === 0) {
+            $this->mCurves = null;
+        } else {
+            $reader->setOffset($offsetToMCurve, 0);
+            $mCurveContent = $reader->getData($offsetToMatrix - $offsetToMCurve);
+            $mCurves = array();
+            for ($i = 0 ; $i < $this->nOutput; $i++ ) {
+                $mCurve = IO_ICC_Type::makeType($mCurveContent, $this->_iccInfo);
+                if ($mCurve === false) {
+                    break;
+                }
+                $mCurve->parseContent($mCurveContent);
+                $mCurves []= $mCurve;
+                $mCurveContent = substr($mCurveContent, $mCurve->getContentLength());
+            }
+            $this->mCurves = $mCurves;
+        }
         // CLUT
         if ($offsetToCLUT === 0) {
             $this->clut = null;
@@ -97,6 +112,24 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                       'Data' => $data,
                       );
         }
+        // A Curves
+        if ($offsetToACurve === 0) {
+            $this->aCurves = null;
+        } else {
+            $reader->setOffset($offsetToACurve, 0);
+            $aCurveContent = $reader->getDataUntil(null);
+            $aCurves = array();
+            for ($i = 0 ; $i < $this->nInput; $i++ ) {
+                $aCurve = IO_ICC_Type::makeType($aCurveContent, $this->_iccInfo);
+                if ($aCurve === false) {
+                    break;
+                }
+                $aCurve->parseContent($aCurveContent);
+                $aCurves []= $aCurve;
+                $aCurveContent = substr($aCurveContent, $aCurve->getContentLength());
+            }
+        }
+        $this->aCurves = $aCurves;
     }
 
     function dumpContent($opts = array()) {
@@ -104,8 +137,9 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         $nOutput = $this->nOutput;
         $this->echoIndentSpace($opts);
         echo "nInput:{$this->nInput} nOutput:{$nOutput}".PHP_EOL;
-        $opts2 = array_merge($opts, array('level' => $opts['level']+1));
-        //
+        $opts2 = $opts;
+        $opts2["level"]++;
+        // B Curves
         $this->echoIndentSpace($opts);
         echo "bCurves:".PHP_EOL;
         foreach ($this->bCurves as $bCurve) {
@@ -113,7 +147,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             echo "Type:{$bCurve->type}\n";
             $bCurve->dumpContent($opts2);
         }
-        //
+        // Matrix
         $this->echoIndentSpace($opts);
         echo "Matrix:".PHP_EOL;
         for ($y = 0 ; $y < 3 ; $y++) {
@@ -124,7 +158,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             printf("    %2.4f", $this->matrix[9 + $y]);
             echo PHP_EOL;
         }
-        //
+        // M Curves
         $this->echoIndentSpace($opts);
         echo "mCurves:".PHP_EOL;
         foreach ($this->mCurves as $mCurve) {
@@ -169,6 +203,14 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 }
                 echo PHP_EOL;
             }
+        }
+        //
+        $this->echoIndentSpace($opts);
+        echo "aCurves:".PHP_EOL;
+        foreach ($this->aCurves as $aCurve) {
+            $this->echoIndentSpace($opts2);
+            echo "Type:{$aCurve->type}\n";
+            $aCurve->dumpContent($opts2);
         }
     }
 
