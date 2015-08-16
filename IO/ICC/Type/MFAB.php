@@ -39,7 +39,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $reader->setOffset($offsetToBCurve, 0);
             $bCurveContent = $reader->getData($offsetToMatrix - $offsetToBCurve);
             $bCurves = array();
-            for ($i = 0 ; $i < $this->nInput; $i++ ) {
+            for ($i = 0 ; $i < $this->nOutput; $i++ ) {
                 $bCurve = IO_ICC_Type::makeType($bCurveContent, $this->_iccInfo);
                 if ($bCurve === false) {
                     break;
@@ -153,7 +153,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         for ($y = 0 ; $y < 3 ; $y++) {
             $this->echoIndentSpace($opts);
             for ($x = 0 ; $x < 3 ; $x++) {
-                printf("  %2.4f", $this->matrix[$x + $y*3]+9);
+                printf("  %2.4f", $this->matrix[$x + $y*3]);
             }
             printf("    %2.4f", $this->matrix[9 + $y]);
             echo PHP_EOL;
