@@ -57,35 +57,4 @@ class IO_ICC_Bit extends IO_Bit {
         $this->putS15Fixed16Number($xyz['Z']);
         return $xyz;
     }
-    function getAsciiZ($len = null) {
-        $this->byteAlign();
-        if (is_null($len)) {
-            $pos = strpos($this->_data, "\0", $this->_byte_offset);
-            if ($pos === false) {
-                return $this->getDataUntil(null);
-            }
-            $len = $pos - $this->_byte_offset;
-            $str = $this->getData($len);
-            $this->incrementOffset(1, 0); // skip "\0"
-            return $str;
-        }
-        $str = $this->getData($len);
-        $pos = strpos($str, "\0");
-        if ($pos === false) {
-            return $str;
-        }
-        return substr($str, 0, $pos);
-    }
-    function putAsciiZ($str, $len = null, $padstr = ' ') {
-        $pos = strpos($d, "\0");
-        if ($pos !== false) {
-            $str = substr($str, 0, $pos);
-        }
-        $slen = substr($str);
-        if ($slen + 1 < $len) {
-            $str = str_pad($str, $len - 1, $padstr);
-        }
-        $str .= "\0";
-        $this->putdata($str, $len);
-    }
 }
