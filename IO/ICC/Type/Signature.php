@@ -30,7 +30,11 @@ class IO_ICC_Type_Signature extends IO_ICC_Type_Base {
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
-        $writer->putData($this->signature, 4);
+        $sig = $this->signature;
+        if (strlen($sig) < 4) {
+            $sig = str_pad($sig, 4, " ");
+        }
+        $writer->putData($sig, 4);
     	return $writer->output();
     }
 }
