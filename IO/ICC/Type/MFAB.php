@@ -1,5 +1,6 @@
 <?php
 
+require_once dirname(__FILE__).'/../Exception.php';
 require_once dirname(__FILE__).'/../Bit.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/Curve.php';
@@ -98,7 +99,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $data = array();
             if ($precision === 1) {
                 for ($i = 0 ; $i < $count ; $i++) {
-                    $data []= $reader->getUI16BE();
+                    $data []= $reader->getUI8();
                 } 
             } else {
                 for ($i = 0 ; $i < $count ; $i++) {
@@ -215,12 +216,94 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
     }
 
     function buildContent($opts = array()) {
-        $writer = new IO_Bit();
+        $writer = new IO_ICC_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
-        foreach ($this->values as $value) {
-            $writer->putS15Fixed16Number($value);
+        $nInput = $this->nInput;
+        $nOutput = $this->nOutput;
+        $writer->putUI8($nInput);
+        $writer->putUI8($nOutput);
+        $writer->putData("\0\0"); // reserved padding
+
+        list($offsetToBCurveOffset, $dummy ) = $writer->getOffset();
+        $writer->putUI32BE(0); // offsetToBCurve
+        list($offsetToMatrixOffset, $dummy ) = $writer->getOffset();
+        $writer->putUI32BE(0); // offsetToMatrix
+        list($offsetToMCurveOffset, $dummy ) = $writer->getOffset();
+        $writer->putUI32BE(0); // offsetToMCurve
+        list($offsetToCLUTOffset, $dummy ) = $writer->getOffset();
+        $writer->putUI32BE(0); // offsetToCLUT
+        list($offsetToACurveOffset, $dummy ) = $writer->getOffset();
+        $writer->putUI32BE(0); // offsetToACurve
+        //  B Curves
+        if (is_null($this->bCurves) === false) {
+            list($offsetToBCurve, $dummy ) = $writer->getOffset();
+            $writer->setUI32BE($offsetToBCurve, $offsetToBCurveOffset);
+            foreach ($this->bCurves as $bCurve) {
+                $bCurveContent = $bCurve->buildContent($opts);
+                $writer->putData($bCurveContent);
+            }
+        }
+        // Matrix
+        if (is_null($this->matrix) !== false) {
+            list($offsetToMatrix, $dummy ) = $writer->getOffset();
+            $writer->setUI32BE($offsetToMatrix ,$offsetToMatrixOffset);
+            foreach ($this->matrix as $value) {
+                $writer->putS15Fixed16Number($value);
+            }
+        }
+        // M Curves
+        if (is_null($this->mCurves) !== false) {
+            list($offsetToMCurve, $dummy ) = $writer->getOffset();
+            $writer->setUI32BE($$offsetToMCurve, $offsetToMCurveOffset);
+            foreach ($this->mCurves as $mCurve) {
+                $mCurveContent = $mCurve->buildContent($opts);
+                $writer->putData($mCurveContent);
+            }
+        }
+        // CLUT
+        if (is_null($this->clut) !== false) {
+            list($offsetToCLUT, $dummy ) = $writer->getOffset();
+            $writer->setUI32BE($offsetToCLUT, $offsetToCLUTOffset);
+            $clut = $this->clut;
+            $grid = $clut['Grid'];
+            $gridNum = count($grid);
+            foreach ($grid as $g) {
+                $writer->putUI8($g);
+            }
+            for ($i = $gridNum ; $i < 16 ; $i++) {
+                $writer->putUI8(0);
+            }
+            $precision = $clut['Precision'];
+            $writer->putUI8($precision);
+            $writer->putData("\0\0\0"); // reserved for padding
+            $count = $nInput;
+            foreach ($grid as $g) {
+                $count *= $g;
+            }
+            $data = $clut['Data'];
+            if ($count !== count($data)) {
+                throw new IO_ICC_Exception("count:$count !== count(data):{count($data)}");
+            }
+            if ($precision === 1) {
+                for ($i = 0 ; $i < $count ; $i++) {
+                    $writer->putUI8($data[$i]);
+                }
+            } else {
+                for ($i = 0 ; $i < $count ; $i++) {
+                    $writer->putUI16BE($data[$i]);
+                }
+            }
+        }
+        // A Curves
+        if (is_null($this->aCurves) !== false) {
+            list($offsetToACurve, $dummy ) = $writer->getOffset();
+            $writer->setUI32BE($offsetToACurve, $offsetToACurveOffset);
+            foreach ($this->aCurves as $aCurve) {
+                $aCurveContent = $aCurve->buildContent($opts);
+                $writer->putData($aCurveContent);
+            }
         }
     	return $writer->output();
     }
