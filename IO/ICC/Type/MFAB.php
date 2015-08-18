@@ -269,7 +269,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             }
         }
         // Matrix
-        if (is_null($this->matrix) !== false) {
+        if (is_null($this->matrix) === false) {
             list($offsetToMatrix, $dummy ) = $writer->getOffset();
             $writer->setUI32BE($offsetToMatrix ,$offsetToMatrixOffset);
             foreach ($this->matrix as $value) {
@@ -277,7 +277,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             }
         }
         // M Curves
-        if (is_null($this->mCurves) !== false) {
+        if (is_null($this->mCurves) === false) {
             list($offsetToMCurve, $dummy ) = $writer->getOffset();
             $writer->setUI32BE($$offsetToMCurve, $offsetToMCurveOffset);
             foreach ($this->mCurves as $mCurve) {
@@ -286,7 +286,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             }
         }
         // CLUT
-        if (is_null($this->clut) !== false) {
+        if (is_null($this->clut) === false) {
             list($offsetToCLUT, $dummy ) = $writer->getOffset();
             $writer->setUI32BE($offsetToCLUT, $offsetToCLUTOffset);
             $clut = $this->clut;
@@ -320,7 +320,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             }
         }
         // A Curves
-        if (is_null($this->aCurves) !== false) {
+        if (is_null($this->aCurves) === false) {
             list($offsetToACurve, $dummy ) = $writer->getOffset();
             $writer->setUI32BE($offsetToACurve, $offsetToACurveOffset);
             foreach ($this->aCurves as $aCurve) {
