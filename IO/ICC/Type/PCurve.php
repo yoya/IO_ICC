@@ -53,8 +53,9 @@ class IO_ICC_Type_PCurve extends IO_ICC_Type_Base {
         $writer->putUI16BE($functionType);
         $fieldLength = self::$fieldLengthByFunctionType[$functionType];
         $count = $fieldLength / 4;
-        if (count($this->params) !== $count) {
-            $params = array_slice($this->params, 0, $count);
+        $params = $this->params;
+        if (count($params) !== $count) {
+            $params = array_slice($params, 0, $count);
         }
         foreach ($params as $param) {
             $writer->putS15Fixed16Number($param);
