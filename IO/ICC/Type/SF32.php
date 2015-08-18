@@ -29,7 +29,7 @@ class IO_ICC_Type_SF32 extends IO_ICC_Type_Base {
     }
 
     function buildContent($opts = array()) {
-        $writer = new IO_Bit();
+        $writer = new IO_ICC_Bit();
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
