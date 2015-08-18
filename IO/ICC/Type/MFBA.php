@@ -249,19 +249,19 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         $writer->putUI8($nOutput);
         $writer->putData("\0\0"); // reserved padding
         //
-        list($offsetToBCurveOffset, $dummy ) = $writer->getOffset();
+        list($offsetToBCurveOffset, $dummy) = $writer->getOffset();
         $writer->putUI32BE(0); // offsetToBCurve
-        list($offsetToMatrixOffset, $dummy ) = $writer->getOffset();
+        list($offsetToMatrixOffset, $dummy) = $writer->getOffset();
         $writer->putUI32BE(0); // offsetToMatrix
-        list($offsetToMCurveOffset, $dummy ) = $writer->getOffset();
+        list($offsetToMCurveOffset, $dummy) = $writer->getOffset();
         $writer->putUI32BE(0); // offsetToMCurve
-        list($offsetToCLUTOffset, $dummy ) = $writer->getOffset();
+        list($offsetToCLUTOffset, $dummy) = $writer->getOffset();
         $writer->putUI32BE(0); // offsetToCLUT
-        list($offsetToACurveOffset, $dummy ) = $writer->getOffset();
+        list($offsetToACurveOffset, $dummy) = $writer->getOffset();
         $writer->putUI32BE(0); // offsetToACurve
         //  B Curves
         if (is_null($this->bCurves) === false) {
-            list($offsetToBCurve, $dummy ) = $writer->getOffset();
+            list($offsetToBCurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToBCurve, $offsetToBCurveOffset);
             foreach ($this->bCurves as $bCurve) {
                 $bCurveContent = $bCurve->buildContent($opts);
@@ -270,7 +270,7 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         }
         // Matrix
         if (is_null($this->matrix) === false) {
-            list($offsetToMatrix, $dummy ) = $writer->getOffset();
+            list($offsetToMatrix, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToMatrix ,$offsetToMatrixOffset);
             foreach ($this->matrix as $value) {
                 $writer->putS15Fixed16Number($value);
@@ -278,7 +278,7 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         }
         // M Curves
         if (is_null($this->mCurves) === false) {
-            list($offsetToMCurve, $dummy ) = $writer->getOffset();
+            list($offsetToMCurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($$offsetToMCurve, $offsetToMCurveOffset);
             foreach ($this->mCurves as $mCurve) {
                 $mCurveContent = $mCurve->buildContent($opts);
@@ -287,7 +287,7 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         }
         // CLUT
         if (is_null($this->clut) === false) {
-            list($offsetToCLUT, $dummy ) = $writer->getOffset();
+            list($offsetToCLUT, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToCLUT, $offsetToCLUTOffset);
             $clut = $this->clut;
             $grid = $clut['Grid'];
@@ -321,7 +321,7 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         }
         // A Curves
         if (is_null($this->aCurves) === false) {
-            list($offsetToACurve, $dummy ) = $writer->getOffset();
+            list($offsetToACurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToACurve, $offsetToACurveOffset);
             foreach ($this->aCurves as $aCurve) {
                 $aCurveContent = $aCurve->buildContent($opts);
