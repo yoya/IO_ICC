@@ -129,8 +129,8 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
                 $aCurves []= $aCurve;
                 $aCurveContent = substr($aCurveContent, $aCurve->getContentLength());
             }
+            $this->aCurves = $aCurves;
         }
-        $this->aCurves = $aCurves;
     }
 
     function dumpContent($opts = array()) {
