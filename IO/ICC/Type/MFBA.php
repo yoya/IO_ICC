@@ -143,34 +143,52 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         // B Curves
         $this->echoIndentSpace($opts);
         echo "bCurves:".PHP_EOL;
-        foreach ($this->bCurves as $bCurve) {
-            $this->echoIndentSpace($opts2);
-            echo "Type:{$bCurve->type}\n";
-            $bCurve->dumpContent($opts2);
+        if (is_null($this->bCurves)) {
+            $this->echoIndentSpace($opts);
+            echo "    (none)".PHP_EOL;
+        } else {
+            foreach ($this->bCurves as $bCurve) {
+                $this->echoIndentSpace($opts2);
+                echo "Type:{$bCurve->type}\n";
+                $bCurve->dumpContent($opts2);
+            }
         }
         // Matrix
         $this->echoIndentSpace($opts);
         echo "Matrix:".PHP_EOL;
-        for ($y = 0 ; $y < 3 ; $y++) {
+        if (is_null($this->matrix)) {
             $this->echoIndentSpace($opts);
-            for ($x = 0 ; $x < 3 ; $x++) {
-                printf("  %2.4f", $this->matrix[$x + $y*3]);
+            echo "    (none)".PHP_EOL;
+        } else {
+            for ($y = 0 ; $y < 3 ; $y++) {
+                $this->echoIndentSpace($opts);
+                for ($x = 0 ; $x < 3 ; $x++) {
+                    printf("  %2.4f", $this->matrix[$x + $y*3]);
+                }
+                printf("    %2.4f", $this->matrix[9 + $y]);
+                echo PHP_EOL;
             }
-            printf("    %2.4f", $this->matrix[9 + $y]);
-            echo PHP_EOL;
         }
         // M Curves
         $this->echoIndentSpace($opts);
         echo "mCurves:".PHP_EOL;
-        foreach ($this->mCurves as $mCurve) {
-            $this->echoIndentSpace($opts2);
-            echo "Type:{$mCurve->type}\n";
-            $mCurve->dumpContent($opts2);
+        if (is_null($this->mCurves)) {
+            $this->echoIndentSpace($opts);
+            echo "    (none)".PHP_EOL;
+        } else {
+            foreach ($this->mCurves as $mCurve) {
+                $this->echoIndentSpace($opts2);
+                echo "Type:{$mCurve->type}\n";
+                $mCurve->dumpContent($opts2);
+            }
         }
         // CLUT
         $this->echoIndentSpace($opts);
         echo "CLUT:".PHP_EOL;
-        if (is_null($this->clut) === false) {
+        if (is_null($this->clut)) {
+            $this->echoIndentSpace($opts);
+            echo "    (none)".PHP_EOL;
+        } else {
             $this->echoIndentSpace($opts2);
             $clut = $this->clut;
             echo "Grids:";
@@ -208,10 +226,15 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         //
         $this->echoIndentSpace($opts);
         echo "aCurves:".PHP_EOL;
-        foreach ($this->aCurves as $aCurve) {
-            $this->echoIndentSpace($opts2);
-            echo "Type:{$aCurve->type}\n";
-            $aCurve->dumpContent($opts2);
+        if (is_null($this->aCurves)) {
+            $this->echoIndentSpace($opts);
+            echo "    (none)".PHP_EOL;
+        } else {
+            foreach ($this->aCurves as $aCurve) {
+                $this->echoIndentSpace($opts2);
+                echo "Type:{$aCurve->type}\n";
+                $aCurve->dumpContent($opts2);
+            }
         }
     }
 
