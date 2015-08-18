@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__FILE__).'/../Bit.php';
+require_once dirname(__FILE__).'/../String.php';
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_Text extends IO_ICC_Type_Base {
@@ -12,7 +13,8 @@ class IO_ICC_Type_Text extends IO_ICC_Type_Base {
     	$reader->input($content);
         $this->type = $reader->getData(4);
         $reader->incrementOffset(4, 0); // skip
-        $this->text = $reader->getDataUntil(false);
+        $text = $reader->getDataUntil(false);
+        $this->text = IO_ICC_String::trimNullTerminate($text);
     }
 
     function dumpContent($opts = array()) {
@@ -26,7 +28,8 @@ class IO_ICC_Type_Text extends IO_ICC_Type_Base {
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
-        $writer->putData($this->text);
+        $text = IO_ICC_Util::fixAsciiZ($this->text);
+        $writer->putData($text);
     	return $writer->output();
     }
 }
