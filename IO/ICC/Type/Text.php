@@ -28,7 +28,7 @@ class IO_ICC_Type_Text extends IO_ICC_Type_Base {
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
-        $text = IO_ICC_Util::fixAsciiZ($this->text);
+        $text = IO_ICC_String::fixAsciiZ($this->text);
         $writer->putData($text);
     	return $writer->output();
     }

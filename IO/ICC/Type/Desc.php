@@ -62,7 +62,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if (is_null($this->ascii)) {
             $writer->putUI32BE(0);
         } else {
-            $ascii = IO_ICC_Util::fixAsciiZ($this->ascii);
+            $ascii = IO_ICC_String::fixAsciiZ($this->ascii);
             $writer->putUI32BE(strlen($ascii));
             $writer->putData($ascii);
         }
@@ -70,7 +70,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if (is_null($this->unicode)) {
             $writer->putUI32BE(0);
         } else {
-            $unicode = IO_ICC_Util::fixAsciiZ($this->unicode);
+            $unicode = IO_ICC_String::fixAsciiZ($this->unicode);
             $ucs2be = mb_convert_encoding($unicode, 'UCS-2BE', 'UTF-8');
             $writer->putUI32BE(strlen($ucs2be) / 2);
             $writer->putData($ucs2be);
@@ -79,7 +79,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if (is_null($this->macintosh)) {
             $writer->putUI8(0);
         } else {
-            $macintosh = IO_ICC_Util::fixAsciiZ($this->macintosh);
+            $macintosh = IO_ICC_String::fixAsciiZ($this->macintosh);
             $macintoshCount = strlen($macintosh);
             $writer->putUI8($macintoshCount);
             $macintosh_0filled = str_pad($macintosh, 67, "\0");
