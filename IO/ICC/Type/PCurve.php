@@ -32,6 +32,7 @@ class IO_ICC_Type_PCurve extends IO_ICC_Type_Base {
             $params []= $reader->getS15Fixed16Number();
         }
         $this->params = $params;
+        list($this->_contentLength, $dummy)  = $reader->getOffset();
     }
 
     function dumpContent($opts = array()) {
