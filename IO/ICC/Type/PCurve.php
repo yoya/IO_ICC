@@ -53,6 +53,7 @@ class IO_ICC_Type_PCurve extends IO_ICC_Type_Base {
         //
         $functionType = $this->functionType;
         $writer->putUI16BE($functionType);
+        $writer->putData("\0\0"); // reserved, shall be set to 0
         $fieldLength = self::$fieldLengthByFunctionType[$functionType];
         $count = $fieldLength / 4;
         $params = $this->params;
