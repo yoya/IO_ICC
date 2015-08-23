@@ -1,3 +1,3 @@
 <?php
 
-class IO_SWF_Exception extends Exception { }
+class IO_ICC_Exception extends Exception { }
