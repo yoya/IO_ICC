@@ -39,8 +39,8 @@ class IO_ICC_Type {
         $obj = new $klass($iccInfo);
         $opts['Version'] = $iccInfo['Version'];
         $opts['type'] = $type;
-        $obj->parseContent($content, $opts);
         $obj->_contentLength = strlen($content);
+        $obj->parseContent($content, $opts);
         return $obj;
     }
 }
