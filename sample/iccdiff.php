@@ -38,7 +38,7 @@ function verifyCheckICC_recursive($icc1, $icc2, $key_list) {
     // 'ProfileSize', '_contentLength');
     if (gettype($icc1) !== gettype($icc2)) {
         echo "icc1:".join(".",$key_list);
-        print_r($icc2).PHP_EOL;
+        print_r($icc1).PHP_EOL;
         echo "icc2:".join(".",$key_list);
         print_r($icc2).PHP_EOL;
         return ;
