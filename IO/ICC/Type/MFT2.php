@@ -8,8 +8,10 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
     var $text = null;
     var $nInput, $nOutput;
     var $nCLUTGridPoints;
-    var $parameters;
-    static $paramNameList =
+    var $matrix;
+    var $nInputTableEntries, $nOutputTableEntries;
+    var $inputTables, $clutTable, $outputTables;
+    static $matrixParamList =
         array('e00', 'e01', 'e02', 'e10', 'e11', 'e12', 'e20', 'e21', 'e22');
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
@@ -24,24 +26,28 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         $this->nCLUTGridPoints = $reader->getUI8();
         $reader->incrementOffset(1, 0); // reserved for padding
         //
-        $parameters = array();
-        foreach (self::$paramNameList as $param) {
-            $parameters[$param] = $reader->getS15Fixed16Number();
+        $matrix = array();
+        foreach (self::$matrixParamList as $param) {
+            $matrix[] = $reader->getS15Fixed16Number();
         }
+        $this->matrix = $matrix;
+        //
         $nInputTableEntries = $reader->getUI16BE();
         $nOutputTableEntries = $reader->getUI16BE();
+        $this->nInputTableEntries = $nInputTableEntries;
+        $this->nOutputTableEntries = $nOutputTableEntries;
         $inputTables = array();
         for($i = 0 ; $i < $nInput ; $i++) {
             $inputTableEntry = array();
             for($j = 0 ; $j < $nInputTableEntries ; $j++) {
                 $inputTableEntry []= $reader->getUI16BE();
             }
-            $inputTables []= array($inputTableEntry);
+            $inputTables []= $inputTableEntry;
         }
         $this->inputTables = $inputTables;
         //
         $nCLUTPoints = pow(2, $nInput) * $nOutput;
-        $clutTable;
+        $clutTable = array();
         for ($i = 0 ; $i < $nCLUTPoints ; $i++) {
             $clutTable [] = $reader->getUI16BE();
         }
@@ -53,13 +59,82 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
             for($j = 0 ; $j < $nOutputTableEntries ; $j++) {
                 $outputTableEntry []= $reader->getUI16BE();
             }
-            $outputTables []= array($outputTableEntry);
+            $outputTables []= $outputTableEntry;
         }
         $this->outputTables = $outputTables;
     }
 
     function dumpContent($opts = array()) {
-        var_dump($this);
+        $opts2 = $opts;
+        $opts2["level"]++;
+        $nInput  = $this->nInput;
+        $nOutput = $this->nOutput;
+        $nCLUTGridPoints = $this->nCLUTGridPoints;
+        $this->echoIndentSpace($opts);
+        echo "nInput:{$nInput} nOutput:{$nOutput} nCLUTGridPoints:{$nCLUTGridPoints}".PHP_EOL;
+        $this->echoIndentSpace($opts);
+        echo "Matrix:".PHP_EOL;
+        for ($y = 0 ; $y < 3 ; $y++) {
+            $this->echoIndentSpace($opts2);
+            for ($x = 0 ; $x < 3 ; $x++) {
+                printf("  %2.4f", $this->matrix[$x + 3*$y]);
+            }
+            echo PHP_EOL;
+        }
+        //
+        $nInputTableEntries = $this->nInputTableEntries;
+        $nOutputTableEntries = $this->nOutputTableEntries;
+        $this->echoIndentSpace($opts);
+        echo "nInputTableEntries:$nInputTableEntries nOutputTableEntries:$nOutputTableEntries".PHP_EOL;
+        //
+        $this->echoIndentSpace($opts);
+        $inputTables = $this->inputTables;
+        echo "InputTable(count=".count($inputTables)."):".PHP_EOL;
+        foreach ($inputTables as $idx => $inputTableEntry) {
+            $this->echoIndentSpace($opts2);
+            echo "InputTable[$idx]:";
+            if (count($inputTableEntry) <= 16) {
+                foreach ($inputTableEntry as $value) {
+                    echo " $value";
+                }
+            } else {
+                echo " ".join(" ", array_slice($inputTableEntry, 0, 4))." ... ".join(" ", array_slice($inputTableEntry, -4, 4));
+            }
+            echo PHP_EOL;
+        }
+        //
+        $nCLUTPoints = pow(2, $nInput) * $nOutput;
+        $clutTable  = $this->clutTable;
+        if (count($clutTable) !== $nCLUTPoints) {
+            new IO_ICC_Exception("count(clutTable):".count($clutTable)." !== nCLUTPoints:$nCLUTPoints");
+        }
+        $this->echoIndentSpace($opts);
+        echo "CLUTTable(len=".$nCLUTPoints."):";
+        if ($nCLUTPoints <= 16) {
+            foreach ($clutTable as $value) {
+                echo " $value";
+            }
+        } else {
+            echo " ".join(" ", array_slice($clutTable, 0, 4))." ... ".join(" ", array_slice($clutTable, -4, 4));
+        }
+        echo PHP_EOL;
+        //
+        $this->echoIndentSpace($opts);
+        $outputTables = $this->outputTables;
+        echo "OutputTable(count=".count($outputTables)."):".PHP_EOL;
+        foreach ($outputTables as $idx => $outputTableEntry) {
+            $this->echoIndentSpace($opts2);
+            echo "OutputTable[$idx]:";
+            if (count($outputTableEntry) <= 16) {
+                foreach ($outputTableEntry as $value) {
+                    echo " $value";
+                }
+            } else {
+                echo " ".join(" ", array_slice($outputTableEntry, 0, 4))." ... ".join(" ", array_slice($outputTableEntry, -4, 4));
+            }
+            echo PHP_EOL;
+        }
+
     }
 
     function buildContent($opts = array()) {
