@@ -43,7 +43,7 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
             for ($i = 0 ; $i < $this->nInput; $i++ ) {
                 $bCurve = IO_ICC_Type::makeType($bCurveContent, $this->_iccInfo);
                 if ($bCurve === false) {
-                    break;
+                    throw new IO_ICC_Exception("bCurve === false");
                 }
                 $bCurve->parseContent($bCurveContent);
                 $bCurves []= $bCurve;
