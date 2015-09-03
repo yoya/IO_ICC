@@ -35,6 +35,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         $nOutputTableEntries = $reader->getUI16BE();
         $this->nInputTableEntries = $nInputTableEntries;
         $this->nOutputTableEntries = $nOutputTableEntries;
+        //
         $inputTables = array();
         for($i = 0 ; $i < $nInput ; $i++) {
             $inputTableEntry = array();
