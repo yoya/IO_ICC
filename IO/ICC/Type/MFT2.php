@@ -11,8 +11,6 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
     var $matrix;
     var $nInputTableEntries, $nOutputTableEntries;
     var $inputTables, $clutTable, $outputTables;
-    static $matrixParamList =
-        array('e00', 'e01', 'e02', 'e10', 'e11', 'e12', 'e20', 'e21', 'e22');
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
@@ -28,7 +26,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         $reader->incrementOffset(1, 0); // reserved for padding
         //
         $matrix = array();
-        foreach (self::$matrixParamList as $param) {
+        for ($i = 0 ; $i < 9 ; $i++) {
             $matrix[] = $reader->getS15Fixed16Number();
         }
         $this->matrix = $matrix;
