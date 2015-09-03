@@ -137,7 +137,7 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
         $nInput = $this->nInput;
         $nOutput = $this->nOutput;
         $this->echoIndentSpace($opts);
-        echo "nInput:{$this->nInput} nOutput:{$nOutput}".PHP_EOL;
+        echo "nInput:{$nInput} nOutput:{$nOutput}".PHP_EOL;
         $opts2 = $opts;
         $opts2["level"]++;
         // B Curves
