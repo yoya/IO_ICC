@@ -23,7 +23,8 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         $nOutput = $reader->getUI8();
         $this->nInput  = $nInput;
         $this->nOutput = $nOutput;
-        $this->nCLUTGridPoints = $reader->getUI8();
+        $nCLUTGridPoints = $reader->getUI8();
+        $this->nCLUTGridPoints = $nCLUTGridPoints;
         $reader->incrementOffset(1, 0); // reserved for padding
         //
         $matrix = array();
@@ -46,7 +47,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         }
         $this->inputTables = $inputTables;
         //
-        $nCLUTPoints = pow(2, $nInput) * $nOutput;
+        $nCLUTPoints = pow($nCLUTGridPoints, $nInput) * $nOutput;
         $clutTable = array();
         for ($i = 0 ; $i < $nCLUTPoints ; $i++) {
             $clutTable [] = $reader->getUI16BE();
@@ -103,7 +104,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
             echo PHP_EOL;
         }
         //
-        $nCLUTPoints = pow(2, $nInput) * $nOutput;
+        $nCLUTPoints = pow($nCLUTGridPoints, $nInput) * $nOutput;
         $clutTable  = $this->clutTable;
         if (count($clutTable) !== $nCLUTPoints) {
             new IO_ICC_Exception("count(clutTable):".count($clutTable)." !== nCLUTPoints:$nCLUTPoints");
