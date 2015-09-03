@@ -20,6 +20,7 @@ class IO_ICC_Type {
               'sf32' => array('klass' => 'SF32'),
               'mAB ' => array('klass' => 'MFAB'),
               'mBA ' => array('klass' => 'MFBA'),
+              'mft1' => array('klass' => 'MFT1'),
               'mft2' => array('klass' => 'MFT2'),
               'sig ' => array('klass' => 'Signature'),
               );
