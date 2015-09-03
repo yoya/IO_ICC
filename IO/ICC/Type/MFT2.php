@@ -141,8 +141,44 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         $writer->putData($this->type);
         $writer->putData("\0\0\0\0");
         //
-        foreach ($this->values as $value) {
-            $writer->putS15Fixed16Number($value);
+        $nInput  = $this->nInput;
+        $nOutput = $this->nOutput;
+        $writer->putUI8($nInput);
+        $writer->putUI8($nOutput);
+        $nCLUTGridPoints = $this->nCLUTGridPoints;
+        $writer->putUI8($nCLUTGridPoints);
+        $writer->putUI8(0); // reserved for padding
+        //
+        $matrix = $this->matrix;
+        for ($i = 0 ; $i < 9 ; $i++) {
+            $writer->putS15Fixed16Number($matrix[$i]);
+        }
+        //
+        $nInputTableEntries = $this->nInputTableEntries;
+        $nOutputTableEntries = $this->nOutputTableEntries;
+        $writer->putUI16BE($nInputTableEntries);
+        $writer->putUI16BE($nOutputTableEntries);
+        //
+        $inputTables = $this->inputTables;
+        for($i = 0 ; $i < $nInput ; $i++) {
+            $inputTableEntry = $inputTables[$i];
+            for($j = 0 ; $j < $nInputTableEntries ; $j++) {
+                $writer->putUI16BE($inputTableEntry[$j]);
+            }
+        }
+        //
+        $nCLUTPoints = pow($nCLUTGridPoints, $nInput) * $nOutput;
+        $clutTable = $this->clutTable;
+        for ($i = 0 ; $i < $nCLUTPoints ; $i++) {
+            $writer->putUI16BE($clutTable[$i]);
+        }
+        //
+        $outputTables = $this->outputTables;
+        for($i = 0 ; $i < $nOutput ; $i++) {
+            $outputTableEntry = $outputTables [$i];
+            for($j = 0 ; $j < $nOutputTableEntries ; $j++) {
+                $writer->putUI16BE($outputTableEntry[$j]);
+            }
         }
     	return $writer->output();
     }
