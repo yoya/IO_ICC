@@ -193,7 +193,10 @@ class IO_ICC {
         }
         $tagTable = $this->_tagTable;
         $tagTableCount = count($tagTable);
-        echo "TagTableCount: $tagTableCount".PHP_EOL;
+        echo "TagTable: (Count:$tagTableCount)".PHP_EOL;
+        foreach ($tagTable as $tagInfo) {
+            echo "    Signature:{$tagInfo['Signature']} Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']}".PHP_EOL;
+        }
         foreach ($this->_tags as $tag) {
             $tag->dump($opts);
         }
