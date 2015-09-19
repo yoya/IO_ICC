@@ -27,12 +27,16 @@ class IO_ICC_Tag {
     }
     function dump($opts = array()) {
         $tagInfo = $this->tagInfo;
+        $hexdump = ! empty($opts['hexdump']);
         echo "Signature:{$tagInfo['Signature']}";
         echo " (Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']})".PHP_EOL;
         echo "    Type:{$this->type}".PHP_EOL;
         $opts['level'] = 0;
         if ($this->parseTagContent($opts)) {
             $this->tag->dumpContent($opts);
+        }
+        if ($hexdump) {
+            $opts['iobit']->hexdump($tagInfo['Offset'], 8 + $tagInfo['Size']);
         }
     }
     function build($opts = array()) {

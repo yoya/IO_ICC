@@ -163,6 +163,12 @@ class IO_ICC {
     function dump($opts = array()) {
         echo "Header:".PHP_EOL;
         $header = $this->_header;
+        $hexdump = ! empty($opts['hexdump']);
+        if ($hexdump) {
+            $iobit = new IO_Bit();
+            $iobit->input($this->_iccdata);
+            $opts['iobit'] = $iobit;
+        }
         foreach ($header as $key => $value) {
             if (is_array($value)) {
                 echo "    $key:";
@@ -191,12 +197,22 @@ class IO_ICC {
                 echo PHP_EOL;
             }
         }
+        if ($hexdump) {
+            $iobit->hexdump(0, self::HEADER_SIZE);
+        }
+        // tagTable
         $tagTable = $this->_tagTable;
         $tagTableCount = count($tagTable);
         echo "TagTable: (Count:$tagTableCount)".PHP_EOL;
         foreach ($tagTable as $tagInfo) {
             echo "    Signature:{$tagInfo['Signature']} Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']}".PHP_EOL;
         }
+        if ($hexdump) {
+            // tagTableCount(4) + tagTableCount * (signature + offset + size)
+            $tagTableSize = 4 + $tagTableCount * (4 + 4 + 4);
+            $iobit->hexdump(self::HEADER_SIZE, $tagTableSize);
+        }
+        // Tags
         foreach ($this->_tags as $tag) {
             $tag->dump($opts);
         }
