@@ -36,7 +36,7 @@ class IO_ICC_Tag {
             $this->tag->dumpContent($opts);
         }
         if ($hexdump) {
-            $opts['iobit']->hexdump($tagInfo['Offset'], 8 + $tagInfo['Size']);
+            $opts['iobit']->hexdump($tagInfo['Offset'], $tagInfo['Size']);
         }
     }
     function build($opts = array()) {
