@@ -22,6 +22,7 @@ class IO_ICC {
     const HEADER_SIZE = 128;
     var $_tagTable = null;
     var $_tags = null;
+    var $_tagMD5s = array();
     //
     var $_headerType = null;
     //
@@ -146,13 +147,25 @@ class IO_ICC {
         }
         $tags = $this->_tags;
         $currTableOffset = $tableOffset;
-        foreach ($tags as $idx => $tag) {
-            list($offset, $dummy) = $writer->getOffset();
-            $writer->setUI32BE($offset, $currTableOffset + 4);
+        foreach ($tags as $idx => &$tag) {
+            list($tagOffset, $dummy) = $writer->getOffset();
             $tagData = $tag->build();
-            $writer->putData($tagData);
-            list($next_offset, $dummy) = $writer->getOffset();
-            $writer->setUI32BE($next_offset - $offset, $currTableOffset + 8);
+            $tagSize = strlen($tagData);
+            $tagMD5  = md5($tagData);
+            $tag->_Offset = $tagOffset;
+            $tag->_Size   = $tagSize;
+            $tag->_tagMD5 = $tagMD5;
+            if (empty($this->_tagMD5s[$tagMD5])) {
+                $this->_tagMD5s[$tagMD5] = $tag;
+                $writer->putData($tagData);
+                $writer->setUI32BE($tagOffset, $currTableOffset + 4);
+                $writer->setUI32BE($tagSize, $currTableOffset + 8);
+            } else {
+                $tag = $this->_tagMD5s[$tagMD5];
+                $writer->setUI32BE($tag->_Offset, $currTableOffset + 4);
+                $writer->setUI32BE($tag->_Size, $currTableOffset + 8);
+            }
+            //
             $currTableOffset += 12;
         }
         $data = $writer->output();
