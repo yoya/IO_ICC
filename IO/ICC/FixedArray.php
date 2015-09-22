@@ -24,28 +24,3 @@ class IO_ICC_FixedArray extends SplFixedArray {
     }
 }
 
-$a = new IO_ICC_FixedArray(256);
-for ($i = 0 ; $i < 256; $i++) {
-    $a[$i] = $i;
-}
-
-//echo $a->join(" ").PHP_EOL;
-echo $a->slice(-4, 6)->join(" ").PHP_EOL;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
