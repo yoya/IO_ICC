@@ -1,7 +1,7 @@
 <?php
-
 require_once dirname(__FILE__).'/../Exception.php';
 require_once dirname(__FILE__).'/../Bit.php';
+require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/Curve.php';
 
@@ -96,14 +96,14 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
             foreach ($grid as $g) {
                 $count *= $g;
             }
-            $data = array();
+            $data = new IO_ICC_FixedArray($count);
             if ($precision === 1) {
                 for ($i = 0 ; $i < $count ; $i++) {
-                    $data []= $reader->getUI8();
+                    $data[$i] = $reader->getUI8();
                 } 
             } else {
                 for ($i = 0 ; $i < $count ; $i++) {
-                    $data []= $reader->getUI16BE();
+                    $data[$i] = $reader->getUI16BE();
                 }
             }
             $this->clut =

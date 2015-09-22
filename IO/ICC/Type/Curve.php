@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__FILE__).'/../Bit.php';
+require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
@@ -13,12 +14,12 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
         $this->type = $reader->getData(4);
         $reader->incrementOffset(4, 0); // skip
         $count = $reader->getUI32BE();
-        $values = array();
+        $values = new IO_ICC_FixedArray($count);
         if ($count === 1) {
-            $values []= $reader->getU8Fixed8Number();
+            $values[0] = $reader->getU8Fixed8Number();
         } else {
             for ($i = 0 ; $i < $count ; $i++) {
-                $values []= $reader->getUI16BE();
+                $values[$i] = $reader->getUI16BE();
             }
         }
         list($this->_contentLength, $dummy)  = $reader->getOffset();

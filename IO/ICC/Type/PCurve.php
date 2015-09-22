@@ -2,6 +2,7 @@
 
 require_once dirname(__FILE__).'/../Exception.php';
 require_once dirname(__FILE__).'/../Bit.php';
+require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_PCurve extends IO_ICC_Type_Base {
@@ -27,9 +28,9 @@ class IO_ICC_Type_PCurve extends IO_ICC_Type_Base {
         $reader->incrementOffset(2, 0); // reserved, shall be set to 0
         $fieldLength = self::$fieldLengthByFunctionType[$functionType];
         $count = $fieldLength / 4;
-        $params = array();
+        $params = new IO_ICC_FixedArray($count);
         for ($i = 0 ; $i < $count ; $i++) {
-            $params []= $reader->getS15Fixed16Number();
+            $params[$i] = $reader->getS15Fixed16Number();
         }
         $this->params = $params;
         list($this->_contentLength, $dummy)  = $reader->getOffset();

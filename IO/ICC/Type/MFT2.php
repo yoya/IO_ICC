@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(__FILE__).'/../Bit.php';
+require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/Base.php';
 
 class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
@@ -27,7 +28,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         //
         $matrix = array();
         for ($i = 0 ; $i < 9 ; $i++) {
-            $matrix[] = $reader->getS15Fixed16Number();
+            $matrix []= $reader->getS15Fixed16Number();
         }
         $this->matrix = $matrix;
         //
@@ -38,26 +39,26 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         //
         $inputTables = array();
         for($i = 0 ; $i < $nInput ; $i++) {
-            $inputTableEntry = array();
+            $inputTableEntry = new IO_ICC_FixedArray($nInputTableEntries);
             for($j = 0 ; $j < $nInputTableEntries ; $j++) {
-                $inputTableEntry []= $reader->getUI16BE();
+                $inputTableEntry [$j]= $reader->getUI16BE();
             }
             $inputTables []= $inputTableEntry;
         }
         $this->inputTables = $inputTables;
         //
         $nCLUTPoints = pow($nCLUTGridPoints, $nInput) * $nOutput;
-        $clutTable = array();
+        $clutTable = new IO_ICC_FixedArray($nCLUTPoints);
         for ($i = 0 ; $i < $nCLUTPoints ; $i++) {
-            $clutTable [] = $reader->getUI16BE();
+            $clutTable[$i] = $reader->getUI16BE();
         }
         $this->clutTable = $clutTable;
         //
         $outputTables = array();
         for($i = 0 ; $i < $nOutput ; $i++) {
-            $outputTableEntry = array();
+            $outputTableEntry = new IO_ICC_FixedArray($nOutputTableEntries);
             for($j = 0 ; $j < $nOutputTableEntries ; $j++) {
-                $outputTableEntry []= $reader->getUI16BE();
+                $outputTableEntry[$j] = $reader->getUI16BE();
             }
             $outputTables []= $outputTableEntry;
         }
@@ -98,7 +99,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
                     echo " $value";
                 }
             } else {
-                echo " ".join(" ", array_slice($inputTableEntry, 0, 4))." ... ".join(" ", array_slice($inputTableEntry, -4, 4));
+                echo " ".$inputTableEntry->slice(0, 4)->join(" ")." ... ".$inputTableEntry->slice(-4, 4)->join(" ");
             }
             echo PHP_EOL;
         }
@@ -115,7 +116,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
                 echo " $value";
             }
         } else {
-            echo " ".join(" ", array_slice($clutTable, 0, 4))." ... ".join(" ", array_slice($clutTable, -4, 4));
+            echo " ".$clutTable->slice(0, 4)->join(" ")." ... ".$clutTable->slice(-4, 4)->join(" ");
         }
         echo PHP_EOL;
         //
@@ -130,7 +131,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
                     echo " $value";
                 }
             } else {
-                echo " ".join(" ", array_slice($outputTableEntry, 0, 4))." ... ".join(" ", array_slice($outputTableEntry, -4, 4));
+                echo " ".$outputTableEntry->slice(0, 4)->join(" ")." ... ".$outputTableEntry->slice(-4, 4)->join(" ");
             }
             echo PHP_EOL;
         }
