@@ -22,7 +22,7 @@ class IO_ICC {
     const HEADER_SIZE = 128;
     var $_tagTable = null;
     var $_tags = null;
-    var $_tagMD5s = array();
+    var $_tagMD5s = null;
     //
     var $_headerType = null;
     //
@@ -100,6 +100,8 @@ class IO_ICC {
     }
 
     function build() {
+        $this->_tagMD5s = array();
+        //
         $writer = new IO_ICC_Bit();
         // Header
         $header = $this->_header;
