@@ -78,6 +78,8 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         $writer->putUI16BE($this->scriptCode);
         if (is_null($this->macintosh)) {
             $writer->putUI8(0);
+            $macintosh_0filled = str_repeat("\0", 67);
+            $writer->putData($macintosh_0filled);
         } else {
             $macintosh = IO_ICC_String::fixAsciiZ($this->macintosh);
             $macintoshCount = strlen($macintosh);
