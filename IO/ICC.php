@@ -171,6 +171,7 @@ class IO_ICC {
             //
             $currTableOffset += 12;
         }
+        $writer->nByteAlign(4, "\0");
         $data = $writer->output();
         $writer->setUI32BE(strlen($data), 0);
         return $writer->output();
