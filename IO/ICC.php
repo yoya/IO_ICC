@@ -150,6 +150,7 @@ class IO_ICC {
         $tags = $this->_tags;
         $currTableOffset = $tableOffset;
         foreach ($tags as $idx => &$tag) {
+            $writer->nByteAlign(4, "\0");
             list($tagOffset, $dummy) = $writer->getOffset();
             $tagData = $tag->build();
             $tagSize = strlen($tagData);

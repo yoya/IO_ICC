@@ -43,11 +43,6 @@ class IO_ICC_Tag {
         $type = $this->type;
         if (is_null($this->content)) {
             $this->content = $this->buildTagContent();
-            $alighSize = 4;
-            $remainder = strlen($this->content) % $alighSize;
-            if ($remainder) {
-                $this->content .= str_pad("\0", $alighSize - $remainder);
-            }
         }
         return $this->content;
     }

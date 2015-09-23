@@ -57,4 +57,16 @@ class IO_ICC_Bit extends IO_Bit {
         $this->putS15Fixed16Number($xyz['Z']);
         return $xyz;
     }
+    function nByteAlign($nByte, $pad = NULL) {
+        list($offset, $dummy) = $this->getOffset();
+        $remainder = $offset % $nByte;
+        if ($remainder) {
+            $nPadding = $nByte - $remainder;
+            if (is_null($pad)) {
+                $this->incrementOffset($nPadding, 0); // reader
+            } else {
+                $this->putData(str_pad("\0", $nPadding)); // writer
+            }
+        }
+    }
 }
