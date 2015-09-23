@@ -1,6 +1,7 @@
 <?php
 
 require 'IO/ICC/Editor.php';
+require __DIR__.'/verifyCheckICC.php';
 
 if ($argc != 1) {
     echo "Usage: php alltest.php\n";
@@ -52,6 +53,7 @@ while (($file = readdir($dh)) !== false) {
     $icc3->build();
     $icc3->rebuild();
     $icc3->build();
+    verifyCheckICC($icc1, $icc3);
 }
 
 exit (0);
