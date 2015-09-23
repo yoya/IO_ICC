@@ -322,6 +322,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         }
         // A Curves
         if (is_null($this->aCurves) === false) {
+            $writer->nByteAlign(4, "\0");
             list($offsetToACurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToACurve, $offsetToACurveOffset);
             foreach ($this->aCurves as $aCurve) {
