@@ -304,13 +304,14 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $precision = $clut['Precision'];
             $writer->putUI8($precision);
             $writer->putData("\0\0\0"); // reserved for padding
-            $count = $nInput;
+            $count = $nOutput;
             foreach ($grid as $g) {
                 $count *= $g;
             }
             $data = $clut['Data'];
             if ($count !== count($data)) {
-                throw new IO_ICC_Exception("count:$count !== count(data):{count($data)}");
+                $count_data = count($data);
+                throw new IO_ICC_Exception("count:$count !== count(data):$count_data");
             }
             if ($precision === 1) {
                 for ($i = 0 ; $i < $count ; $i++) {
