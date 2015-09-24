@@ -313,10 +313,12 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
                 for ($i = 0 ; $i < $count ; $i++) {
                     $writer->putUI8($data[$i]);
                 }
-            } else {
+            } else if ($precision === 2) {
                 for ($i = 0 ; $i < $count ; $i++) {
                     $writer->putUI16BE($data[$i]);
                 }
+            } else {
+                throw new IO_ICC_Exception("CLUT precision($precision) !== 1,2");
             }
         }
         // A Curves

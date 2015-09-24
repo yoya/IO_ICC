@@ -102,10 +102,12 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 for ($i = 0 ; $i < $count ; $i++) {
                     $data[$i] = $reader->getUI8();
                 } 
-            } else {
+            } else if ($precision === 2) {
                 for ($i = 0 ; $i < $count ; $i++) {
                     $data[$i] = $reader->getUI16BE();
                 }
+            } else {
+                throw new IO_ICC_Exception("CLUT precision($precision) !== 1,2");
             }
             $this->clut =
                 array(
