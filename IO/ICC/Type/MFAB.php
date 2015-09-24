@@ -93,7 +93,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $reader->setOffset($offsetToCLUT + 16, 0);
             $precision = $reader->getUI8();
             $reader->incrementOffset(3, 0); // reserved for padding
-            $count = $this->nInput;
+            $count = $this->nOutput;
             foreach ($grid as $g) {
                 $count *= $g;
             }
@@ -210,15 +210,15 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 echo "  [$i]:";
                 if ($gridNum < 16) {
                     for ($j = 0 ; $j < $gridNum ; $j++) {
-                        echo " ".$data[$nInput*$j + $i];
+                        echo " ".$data[$nOutput*$j + $i];
                     }
                 } else {
                     for ($j = 0 ; $j < 8 ; $j++) {
-                        echo " ".$data[$nInput*$j + $i];
+                        echo " ".$data[$nOutput*$j + $i];
                     }
                     echo " ...";
                     for ($j = $gridNum - 8 ; $j < $gridNum ; $j++) {
-                        echo " ".$data[$nInput*$j + $i];
+                        echo " ".$data[$nOutput*$j + $i];
                     }
                 }
                 echo PHP_EOL;
