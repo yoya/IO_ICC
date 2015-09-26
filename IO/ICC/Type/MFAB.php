@@ -3,6 +3,7 @@
 require_once dirname(__FILE__).'/../Exception.php';
 require_once dirname(__FILE__).'/../Bit.php';
 require_once dirname(__FILE__).'/../FixedArray.php';
+require_once dirname(__FILE__).'/../Util.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/Curve.php';
 
@@ -48,7 +49,8 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 }
                 $bCurve->parseContent($bCurveContent);
                 $bCurves []= $bCurve;
-                $bCurveContent = substr($bCurveContent, $bCurve->getContentLength());
+                $length = IO_ICC_Util::alignedLength($bCurve->getContentLength(), 4);
+                $bCurveContent = substr($bCurveContent, $length);
             }
             $this->bCurves = $bCurves;
         }
@@ -77,7 +79,8 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 }
                 $mCurve->parseContent($mCurveContent);
                 $mCurves []= $mCurve;
-                $mCurveContent = substr($mCurveContent, $mCurve->getContentLength());
+                $length = IO_ICC_Util::alignedLength($mCurve->getContentLength(), 4);
+                $mCurveContent = substr($mCurveContent, $length);
             }
             $this->mCurves = $mCurves;
         }
@@ -130,7 +133,8 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 }
                 $aCurve->parseContent($aCurveContent);
                 $aCurves []= $aCurve;
-                $aCurveContent = substr($aCurveContent, $aCurve->getContentLength());
+                $length = IO_ICC_Util::alignedLength($aCurve->getContentLength(), 4);
+                $aCurveContent = substr($aCurveContent, $length);
             }
             $this->aCurves = $aCurves;
         }
@@ -264,9 +268,11 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         $writer->putUI32BE(0); // offsetToACurve
         //  B Curves
         if (is_null($this->bCurves) === false) {
+            $writer->nByteAlign(4, "\0");
             list($offsetToBCurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToBCurve, $offsetToBCurveOffset);
             foreach ($this->bCurves as $bCurve) {
+                $writer->nByteAlign(4, "\0");
                 $bCurveContent = $bCurve->buildContent($opts);
                 $writer->putData($bCurveContent);
             }
@@ -281,15 +287,18 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         }
         // M Curves
         if (is_null($this->mCurves) === false) {
+            $writer->nByteAlign(4, "\0");
             list($offsetToMCurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToMCurve, $offsetToMCurveOffset);
             foreach ($this->mCurves as $mCurve) {
+                $writer->nByteAlign(4, "\0");
                 $mCurveContent = $mCurve->buildContent($opts);
                 $writer->putData($mCurveContent);
             }
         }
         // CLUT
         if (is_null($this->clut) === false) {
+            $writer->nByteAlign(4, "\0");
             list($offsetToCLUT, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToCLUT, $offsetToCLUTOffset);
             $clut = $this->clut;
@@ -317,10 +326,12 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
                 for ($i = 0 ; $i < $count ; $i++) {
                     $writer->putUI8($data[$i]);
                 }
-            } else {
+            } else if ($precision === 2) {
                 for ($i = 0 ; $i < $count ; $i++) {
                     $writer->putUI16BE($data[$i]);
                 }
+            } else {
+                throw new IO_ICC_Exception("CLUT precision($precision) !== 1,2");
             }
         }
         // A Curves
@@ -329,6 +340,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             list($offsetToACurve, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToACurve, $offsetToACurveOffset);
             foreach ($this->aCurves as $aCurve) {
+                $writer->nByteAlign(4, "\0");
                 $aCurveContent = $aCurve->buildContent($opts);
                 $writer->putData($aCurveContent);
             }
