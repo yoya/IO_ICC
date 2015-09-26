@@ -3,9 +3,10 @@
 require 'IO/ICC/Editor.php';
 require __DIR__.'/verifyCheckICC.php';
 
-if ($argc != 1) {
-    echo "Usage: php alltest.php\n";
+if ($argc < 1) {
+    echo "Usage: php alltest.php [iccfile [iccfile2 [...]]]\n";
     echo "ex) php alltest.php\n";
+    echo "ex) php alltest.php sRGB.icc AdobeRGB.icc\n";
     exit(1);
 }
 
@@ -16,13 +17,22 @@ function null_callback() {
     return NULL;
 }
 
-while (($file = readdir($dh)) !== false) {
-    if (preg_match('/\.icc$/i', $file, $matches) === 0) {
-        continue;
+$files = array();
+
+if ($argc < 2) {
+    while (($file = readdir($dh)) !== false) {
+        if (preg_match('/\.icc$/i', $file, $matches) === 0) {
+            continue;
+        }
+        $files []= "$iccdir/$file";
     }
-    $path = "$iccdir/$file";
-    echo "$path".PHP_EOL;
-    $iccdata = file_get_contents($path);
+} else {
+    $files = array_slice($argv, 1);
+}
+
+foreach ($files as $file) {
+    echo "$file".PHP_EOL;
+    $iccdata = file_get_contents($file);
 
     echo "    test1.".PHP_EOL;
     $icc1 = new IO_ICC_Editor();
