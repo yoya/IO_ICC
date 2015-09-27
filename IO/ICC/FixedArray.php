@@ -22,5 +22,14 @@ class IO_ICC_FixedArray extends SplFixedArray {
         $arr = $this->toArray();
         return join($glue, $arr);
     }
+    function shuffle() {
+        $size = $this->getSize();
+        $newArr = new IO_ICC_FixedArray($size);
+        $arr = (array) $this;
+        shuffle($arr);
+        for ($i = 0 ; $i < $size ; $i++) {
+            $newArr[$i] = $arr[$i];
+        }
+    }
 }
 
