@@ -28,7 +28,7 @@ class IO_ICC_FixedArray extends SplFixedArray {
         $arr = (array) $this;
         shuffle($arr);
         for ($i = 0 ; $i < $size ; $i++) {
-            $newArr[$i] = $arr[$i];
+            $this->offsetSet($i, $arr[$i]);
         }
     }
 }
