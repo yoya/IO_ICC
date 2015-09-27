@@ -6,7 +6,7 @@
 
 require_once 'IO/ICC.php';
 
-$options = getopt("f:hd");
+$options = getopt("f:hdr");
 
 function usage() {
     echo "Usage: php iccdump.php [-h] [-d] -f <iccfile>".PHP_EOL;
@@ -24,6 +24,9 @@ if (isset($options['h'])) {
 }
 if (isset($options['d'])) {
   $opts['detail'] = true;
+}
+if (isset($options['r'])) {
+  $opts['restrict'] = true;
 }
 
 

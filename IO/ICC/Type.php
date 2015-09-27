@@ -31,11 +31,14 @@ class IO_ICC_Type {
         }
         return false;
     }
-    static function makeType($content, $iccInfo, $count = 1) {
+    static function makeType($content, $iccInfo, $opts = array()) {
         $type = substr($content, 0, 4);
         $klass = self::getTypeInfo($type, 'klass');
         if ($klass === false) {
-            return false; // no parse
+            if (empty($opts['restrict'])) {
+                return false; // no parse
+            }
+            throw new IO_ICC_Exception("klass === false (type:$type)");
         }
         require_once dirname(__FILE__)."/Type/$klass.php";
         $klass = "IO_ICC_Type_$klass";

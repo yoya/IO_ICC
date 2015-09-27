@@ -10,6 +10,8 @@ if ($argc < 1) {
     exit(1);
 }
 
+$opts = array('restrict' => true);
+
 $iccdir = dirname(__FILE__);
 $dh = opendir($iccdir);
 
@@ -41,7 +43,7 @@ foreach ($files as $file) {
     $icc1->dump();
     ob_end_clean();
     $iccdata2 = $icc1->build();
-    $icc1->rebuild();
+    $icc1->rebuild($opts);
     $iccdata3 = $icc1->build();
     //
     echo "    test2.".PHP_EOL;
@@ -51,7 +53,7 @@ foreach ($files as $file) {
     $icc2->dump();
     ob_end_clean();
     $icc2->build();
-    $icc2->rebuild();
+    $icc2->rebuild($opts);
     $icc2->build();
     //
     echo "    test3.".PHP_EOL;
@@ -61,7 +63,7 @@ foreach ($files as $file) {
     $icc3->dump();
     ob_end_clean();
     $icc3->build();
-    $icc3->rebuild();
+    $icc3->rebuild($opts);
     $icc3->build();
     verifyCheckICC($icc1, $icc3);
 }

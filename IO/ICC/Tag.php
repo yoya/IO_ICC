@@ -53,7 +53,7 @@ class IO_ICC_Tag {
         if (is_null($this->content)) {
             throw new IO_ICC_Exception("no tag and no content in ".var_export($this, true));
         }
-        $tag = IO_ICC_Type::makeType($this->content, $this->iccInfo);
+        $tag = IO_ICC_Type::makeType($this->content, $this->iccInfo, $opts);
         if ($tag === false) {
             return false;
         }

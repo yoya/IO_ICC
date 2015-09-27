@@ -11,9 +11,9 @@ class IO_ICC_Editor extends IO_ICC {
     // var $_headers = array(); // protected
     // var $_tags = array();    // protected
 
-    function rebuild() {
+    function rebuild($opts = array()) {
         foreach ($this->_tags as &$tag) {
-            if ($tag->parseTagContent()) {
+            if ($tag->parseTagContent($opts)) {
                 $tag->content = null;
             }
         }
