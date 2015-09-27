@@ -11,20 +11,24 @@ class IO_ICC_Type {
     static $typeMap =
         array(
               // signature => array(klass)
-              'desc' => array('klass' => 'Desc', "version" => 2),
-              'curv' => array('klass' => 'Curve'),
-              'para' => array('klass' => 'PCurve'),
-              'XYZ ' => array('klass' => 'XYZ', "version" => 2),
-              'text' => array('klass' => 'Text', "version" => 2),
-              'mluc' => array('klass' => 'MLUC', "version" => 4),
-              'sf32' => array('klass' => 'SF32'),
-              'mAB ' => array('klass' => 'MFAB'),
-              'mBA ' => array('klass' => 'MFBA'),
-              'mft1' => array('klass' => 'MFT1'),
-              'mft2' => array('klass' => 'MFT2'),
-              'sig ' => array('klass' => 'Signature'),
-              'meas' => array('klass' => 'Measure'),
-              'view' => array('klass' => 'View'),
+              // version 2
+              'desc' => array('klass' => 'Desc'     , "version" => 2),
+              'curv' => array('klass' => 'Curve'    , 'version' => 2),
+              'XYZ ' => array('klass' => 'XYZ'      , "version" => 2),
+              'text' => array('klass' => 'Text'     , "version" => 2),
+              'sf32' => array('klass' => 'SF32'     , "version" => 2),
+              'mft1' => array('klass' => 'MFT1'     , "version" => 2),
+              'mft2' => array('klass' => 'MFT2'     , "version" => 2),
+              'sig ' => array('klass' => 'Signature', "version" => 2),
+              'meas' => array('klass' => 'Measure'  , 'version' => 2),
+              'view' => array('klass' => 'View'     , "version" => 2),
+              // version 4
+              'para' => array('klass' => 'PCurve'   , "version" => 4),
+              'mluc' => array('klass' => 'MLUC'     , "version" => 4),
+              'mAB ' => array('klass' => 'MFAB'     , "version" => 4),
+              'mBA ' => array('klass' => 'MFBA'     , "version" => 4),
+              // max
+              'dict' => array(/*'klass' => 'Dict'   ,*/ "version" => 5),
               );
     static function getTypeInfo($tagType, $key) {
         if (isset(self::$typeMap[$tagType][$key])) {
