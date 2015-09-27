@@ -29,6 +29,8 @@ class IO_ICC_Type {
               'mBA ' => array('klass' => 'MFBA'     , "version" => 4),
               // max
               'dict' => array(/*'klass' => 'Dict'   ,*/ "version" => 5),
+              'gbd ' => array(/*'klass' => 'Gamut'  ,*/ "version" => 5),
+              'ZXML' => array(/*'klass' => 'ZXML'   ,*/ "version" => 5),
               );
     static function getTypeInfo($tagType, $key) {
         if (isset(self::$typeMap[$tagType][$key])) {
