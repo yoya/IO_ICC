@@ -15,24 +15,24 @@ class IO_ICC_Type_Measure extends IO_ICC_Type_Base {
     var $measureGeometry;
     var $measureFlare;
     var $stdIlluminant;
-    static $stdObserverType =
+    static $stdObserverEncodings =
         array(
               0 => 'Unknown',
               1 => 'CIE 1931 standard colormetric observer',
               2 => 'CIE 1964 standard colormetric observer',
               );
-    static $measureGeometryType =
+    static $measureGeometryEncodings =
         array(
               0 => 'Unknown',
               1 => '0:45 or 45:0',
               2 => '0:d or d:0',
               );
-    static $measureFlareType =
+    static $measureFlareEncodings =
         array(
               0 => '0 (0 %)',
               1 => '1.0 (or 100%)',
               );
-    static $stdIlluminantType =
+    static $stdIlluminantEncodings =
         array (
                0 => 'Unknown',
                1 => 'D50',
@@ -58,11 +58,11 @@ class IO_ICC_Type_Measure extends IO_ICC_Type_Base {
 
     function dumpContent($opts = array()) {
         $stdObserver = $this->stdObserver;
-        $stdObserverStr = self::$stdObserverType[$stdObserver];
+        $stdObserverStr = self::$stdObserverEncodings[$stdObserver];
         $measureGeometry = $this->measureGeometry;
-        $measureGeometryStr = self::$measureGeometryType[$measureGeometry];
+        $measureGeometryStr = self::$measureGeometryEncodings[$measureGeometry];
         $stdIlluminant = $this->stdIlluminant;
-        $stdIlluminantStr = self::$stdIlluminantType[$stdIlluminant];
+        $stdIlluminantStr = self::$stdIlluminantEncodings[$stdIlluminant];
         //
         echo "        StdObserver:$stdObserver $stdObserverStr ".PHP_EOL;
         echo "        nCIEXYZ:";
