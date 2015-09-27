@@ -24,6 +24,7 @@ class IO_ICC_Type {
               'mft2' => array('klass' => 'MFT2'),
               'sig ' => array('klass' => 'Signature'),
               'meas' => array('klass' => 'Measure'),
+              'view' => array('klass' => 'View'),
               );
     static function getTypeInfo($tagType, $key) {
         if (isset(self::$typeMap[$tagType][$key])) {
