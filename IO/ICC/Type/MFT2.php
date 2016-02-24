@@ -1,8 +1,12 @@
 <?php
 
 require_once dirname(__FILE__).'/../Bit.php';
-require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/Base.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'Array/Uint16.php';
+}
 
 class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
     const DESCRIPTION = 'Multi Function Table with 2 byte presision';
@@ -39,7 +43,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         //
         $inputTables = array();
         for($i = 0 ; $i < $nInput ; $i++) {
-            $inputTableEntry = new IO_ICC_FixedArray($nInputTableEntries);
+            $inputTableEntry = new Array_Uint16($nInputTableEntries);
             for($j = 0 ; $j < $nInputTableEntries ; $j++) {
                 $inputTableEntry [$j]= $reader->getUI16BE();
             }
@@ -48,7 +52,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         $this->inputTables = $inputTables;
         //
         $nCLUTPoints = pow($nCLUTGridPoints, $nInput) * $nOutput;
-        $clutTable = new IO_ICC_FixedArray($nCLUTPoints);
+        $clutTable = new Array_Uint16($nCLUTPoints);
         for ($i = 0 ; $i < $nCLUTPoints ; $i++) {
             $clutTable[$i] = $reader->getUI16BE();
         }
@@ -56,7 +60,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
         //
         $outputTables = array();
         for($i = 0 ; $i < $nOutput ; $i++) {
-            $outputTableEntry = new IO_ICC_FixedArray($nOutputTableEntries);
+            $outputTableEntry = new Array_Uint16($nOutputTableEntries);
             for($j = 0 ; $j < $nOutputTableEntries ; $j++) {
                 $outputTableEntry[$j] = $reader->getUI16BE();
             }

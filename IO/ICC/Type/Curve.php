@@ -3,6 +3,11 @@
 require_once dirname(__FILE__).'/../Bit.php';
 require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/Base.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'Array/Uint16.php';
+}
 
 class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
     const DESCRIPTION = 'Curve Type';
@@ -14,10 +19,11 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
         $this->type = $reader->getData(4);
         $reader->incrementOffset(4, 0); // skip
         $count = $reader->getUI32BE();
-        $values = new IO_ICC_FixedArray($count);
         if ($count === 1) {
+            $values = new IO_ICC_FixedArray($count);
             $values[0] = $reader->getU8Fixed8Number();
         } else {
+            $values = new Array_Uint16($count);
             for ($i = 0 ; $i < $count ; $i++) {
                 $values[$i] = $reader->getUI16BE();
             }
@@ -28,16 +34,17 @@ class IO_ICC_Type_Curve extends IO_ICC_Type_Base {
 
     function dumpContent($opts = array()) {
         $this->echoIndentSpace($opts);
-        echo "CurveValues:";
         $values = $this->CurveValues;
         $count = count($values);
+        echo "CurveValues:";
         if ($count === 1) {
             $value = $values[0];
-            printf(" %.4f (gamma value)", $value);
+            $this->echoIndentSpace($opts);
+            printf("%.4f (gamma value)", $value);
             echo PHP_EOL;
         } else {
             $line_unit = 16;
-            echo PHP_EOL;
+            echo " (Count:$count)".PHP_EOL;
             foreach ($values as $idx => $value) {
                 if (($idx % $line_unit) === 0){
                     $this->echoIndentSpace($opts);

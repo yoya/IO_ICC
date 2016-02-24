@@ -1,10 +1,15 @@
 <?php
 require_once dirname(__FILE__).'/../Exception.php';
 require_once dirname(__FILE__).'/../Bit.php';
-require_once dirname(__FILE__).'/../FixedArray.php';
 require_once dirname(__FILE__).'/../Util.php';
 require_once dirname(__FILE__).'/Base.php';
 require_once dirname(__FILE__).'/Curve.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'Array/Uint8.php';
+    require_once 'Array/Uint16.php';
+}
 
 class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
     const DESCRIPTION = 'MultiFunction BtoA Table';
@@ -99,12 +104,13 @@ class IO_ICC_Type_MFBA extends IO_ICC_Type_Base {
             foreach ($grid as $g) {
                 $count *= $g;
             }
-            $data = new IO_ICC_FixedArray($count);
             if ($precision === 1) {
+                $data = new Array_Uint8($count);
                 for ($i = 0 ; $i < $count ; $i++) {
                     $data[$i] = $reader->getUI8();
-                } 
+                }
             } else if ($precision === 2) {
+                $data = new Array_Uint16($count);
                 for ($i = 0 ; $i < $count ; $i++) {
                     $data[$i] = $reader->getUI16BE();
                 }
