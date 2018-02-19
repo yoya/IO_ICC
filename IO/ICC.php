@@ -41,7 +41,7 @@ class IO_ICC {
         }
         $header = array();
         $header['ProfileSize'] = $reader->getUI32BE();
-        $header['CMMType'] = $reader->getUI32BE();
+        $header['CMMType'] = $reader->getData(4);
         $header['ProfileVersion'] =
             array(
                   'Major' => $reader->getUIBCD8(),
@@ -106,7 +106,7 @@ class IO_ICC {
         // Header
         $header = $this->_header;
         $writer->putUI32BE(0);
-        $writer->putUI32BE($header['CMMType']);
+        $writer->putData($header['CMMType'], 4);
         $writer->putUIBCD8($header['ProfileVersion']['Major']);
         $writer->putUIBCD8($header['ProfileVersion']['Minor']);
         $writer->putData("\0\0", 2); // Profie Version Reserved
