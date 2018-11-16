@@ -1,10 +1,14 @@
 <?php
 /*
-  ICC verion tool
+  ICC header tool
   (c) 2018/11/17- yoya@awm.jp
 */
 
-require_once 'IO/ICC.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/ICC.php';
+}
 
 function usage() {
     echo "Usage: php iccheader.php <iccfile> [<iccfile2> [...]]".PHP_EOL;

@@ -1,8 +1,16 @@
 <?php
+/*
+  ICC listtags tool
+  (c) 2015/09/28- yoya@awm.jp
+*/
+
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/ICC/Editor.php';
+}
 
 $threshold = 10;
-
-require 'IO/ICC/Editor.php';
 
 if ($argc < 2) {
     echo "Usage: php icclisttags.php <icc_file> [<icc_file2> [...]]\n";

@@ -1,7 +1,14 @@
 <?php
+/*
+  ICC copy tool
+  (c) 2015/08/05- yoya@awm.jp
+*/
 
-require 'IO/ICC.php';
-// require dirname(__FILE__).'/../IO/ICC.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/ICC.php';
+}
 
 if ($argc != 2) {
     echo "Usage: php icccopy.php <icc_file>\n";

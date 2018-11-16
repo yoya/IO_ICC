@@ -4,7 +4,11 @@
   (c) 2015/08/02- yoya@awm.jp
 */
 
-require_once 'IO/ICC.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/ICC.php';
+}
 
 $options = getopt("f:hdr");
 

@@ -1,6 +1,14 @@
 <?php
+/*
+  ICC rebuild tool
+  (c) 2015/08/05- yoya@awm.jp
+*/
 
-require 'IO/ICC/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/ICC/Editor.php';
+}
 
 if ($argc != 2) {
     echo "Usage: php iccrebuild.php <icc_file>\n";

@@ -4,7 +4,11 @@
   (c) 2015/08/27- yoya@awm.jp
 */
 
-require_once 'IO/ICC/Bit.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/ICC/Bit.php';
+}
 
 function usage() {
     echo "Usage: php iccversion.php <iccfile> [<iccfile2> [...]]".PHP_EOL;

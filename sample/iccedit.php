@@ -1,6 +1,14 @@
 <?php
+/*
+  ICC edit tool
+  (c) 2015/08/06- yoya@awm.jp
+*/
 
-require 'IO/ICC/Editor.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require 'IO/ICC/Editor.php';
+}
 
 if ($argc < 2) {
     echo "Usage: php iccedit.php <icc_file> [<sig> [<key>:<value> [...]]]\n";

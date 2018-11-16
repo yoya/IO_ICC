@@ -4,7 +4,11 @@
   (c) 2015/08/27- yoya@awm.jp
 */
 
-require 'IO/ICC.php';
+if (is_readable('vendor/autoload.php')) {
+    require 'vendor/autoload.php';
+} else {
+    require_once 'IO/ICC.php';
+}
 
 if ($argc != 3) {
     echo "Usage: php iccdiff.php <icc_file1> <icc_file2>\n";
