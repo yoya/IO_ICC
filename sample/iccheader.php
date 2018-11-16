@@ -1,7 +1,7 @@
 <?php
 /*
   ICC verion tool
-  (c) 2015/08/27- yoya@awm.jp
+  (c) 2018/11/17- yoya@awm.jp
 */
 
 require_once 'IO/ICC.php';
