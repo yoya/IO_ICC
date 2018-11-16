@@ -179,6 +179,10 @@ class IO_ICC {
 
     function dump($opts = array()) {
         echo "Header:".PHP_EOL;
+        $this->dumpHeader($opts + ['indent' => 4]);
+        $this->dumpTagTable($opts + ['indent' => 4]);
+    }
+    function dumpHeader($opts = array()) {
         $header = $this->_header;
         $hexdump = ! empty($opts['hexdump']);
         if ($hexdump) {
@@ -188,7 +192,10 @@ class IO_ICC {
         }
         foreach ($header as $key => $value) {
             if (is_array($value)) {
-                echo "    $key:";
+                if (! empty($opts['indent'])) {
+                    echo str_repeat(" ", $opts['indent']);
+                }
+                echo "$key:";
                 foreach ($value as $k => $v) {
                     if (is_bool($v)) {
                         echo " $k:".($v?"true":"false");
@@ -200,12 +207,15 @@ class IO_ICC {
                 }
                 echo PHP_EOL;
             } else {
+                if (! empty($opts['indent'])) {
+                    echo str_repeat(" ", $opts['indent']);
+                }
                 if (is_bool($value)) {
-                    echo "    $key:".($value?"true":"false");
+                    echo "$key:".($value?"true":"false");
                 } else if (is_float($value)) {
-                    printf("    %s:%.04f", $key, round($value, 4));
+                    printf("%s:%.04f", $key, round($value, 4));
                 } else {
-                    echo "    $key:$value";
+                    echo "$key:$value";
                 }
                 if (isset($this->_headerType[$key][$value])) {
                     $typestr = $this->_headerType[$key][$value];
@@ -217,12 +227,17 @@ class IO_ICC {
         if ($hexdump) {
             $iobit->hexdump(0, self::HEADER_SIZE);
         }
-        // tagTable
+    }
+    function dumpTagTable($opts = array()) {
         $tagTable = $this->_tagTable;
+        $hexdump = ! empty($opts['hexdump']);
         $tagTableCount = count($tagTable);
         echo "TagTable: (Count:$tagTableCount)".PHP_EOL;
         foreach ($tagTable as $tagInfo) {
-            echo "    Signature:{$tagInfo['Signature']} Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']}".PHP_EOL;
+            if (! empty($opts['indent'])) {
+                echo str_repeat(" ", $opts['indent']);
+            }
+            echo "Signature:{$tagInfo['Signature']} Offset:{$tagInfo['Offset']} Size:{$tagInfo['Size']}".PHP_EOL;
         }
         if ($hexdump) {
             // tagTableCount(4) + tagTableCount * (signature + offset + size)
