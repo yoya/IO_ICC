@@ -14,7 +14,9 @@ if ($argc < 2) {
     echo "Usage: php iccedit.php <icc_file> [<sig> [<key>:<value> [...]]]\n";
     echo "ex) php iccedit.php test.icc\n";
     echo "ex) php iccedit.php test.icc desc\n";
-    echo "ex) php iccedit.php test.icc desc ascii:foobaa\n";
+    echo "    php iccedit.php test.icc desc ascii:foobaa\n";
+    echo "ex) php iccedit.php test.icc gTRC\n";
+    echo "    php iccedit.php test.icc gTRC CurveValues:0.82\n";
     exit(1);
 }
 
