@@ -82,7 +82,7 @@ function setKeyValue($keys, $value, &$data) {
     $key = $keys[0];
     if (isset($data->$key))  {
         $next_data = & $data->$key;
-    } else  if (isset($data[$key]))  {
+    } else if (isset($data[$key]))  {
         $next_data = & $data[$key];
     } else {
         fprintf(STDERR, "key($key) not found\n");
