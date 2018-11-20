@@ -8,6 +8,8 @@ ICC Profile I/O library
 
 # usage
 
+## iccdump
+
 ```
 % php vendor/yoya/io_icc/sample/iccdump.php -f sRGB.icc | head
 Header:
@@ -21,10 +23,23 @@ Header:
     acspSignature:acsp
     PrimaryPlatform:APPL
 ...
-```
+
+## iccgbr
 
 ```
 % php vendor/yoya/io_icc/sample/iccgbr.php sRGB.icc > sGBR.icc
+```
+
+## iccedit
+
+```
+% php vendor/yoya/io_icc/sample/iccedit.php GBR.icc
+gTRC:curv
+gXYZ:XYZ
+% php vendor/yoya/io_icc/sample/iccedit.php GBR.icc gTRC
+type:curv
+CurveValues:2.19921875
+% php vendor/yoya/io_icc/sample/iccedit.php GBR.icc gTRC CurveValues:0.82 > GBR_gTRC-0.82.icc
 ```
 
 # icc profile sample
@@ -46,5 +61,3 @@ Header:
 ## XYZ
 
 - http://www.color.org/XYZprofiles.xalter
-
-
