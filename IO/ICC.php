@@ -191,7 +191,7 @@ class IO_ICC {
             $opts['iobit'] = $iobit;
         }
         foreach ($header as $key => $value) {
-            if (is_array($value)) {
+            if ((is_array($value)) || ($value instanceof ArrayAccess)) {
                 if (! empty($opts['indent'])) {
                     echo str_repeat(" ", $opts['indent']);
                 }

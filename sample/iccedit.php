@@ -68,10 +68,10 @@ function displayKeyValue($key_value, $key_prefix) {
         if ($key[0] === "_") {
             continue; // skip internal value
         }
-        if (is_array($value) === false) {
+        if ((! is_array($value)) && (! ($value instanceof ArrayAccess))) {
             echo "$key_prefix$key:$value".PHP_EOL;
-        } else if ((isset($value[0])) && (is_array($value[0]) === false)) {
-            echo "$key_prefix$key:".implode(",", $value).PHP_EOL;
+        } else if ((isset($value[0])) && (! is_array($value[0])) && (! ($value[0] instanceof ArrayAccess))) {
+            echo "$key_prefix$key:".implode(",", (array) $value).PHP_EOL;
         } else {
             displayKeyValue($value, "$key_prefix$key.");
         }
@@ -101,6 +101,11 @@ function setKeyValue($keys, $value, &$data) {
         case "double":
             $value = floatval($value);
             break;
+        case "object":
+            if (! ($next_data instanceof SplFixedArray)) {
+                break;
+            }
+            // no break;
         case "array":
             $value = explode(',', $value);
             break;
