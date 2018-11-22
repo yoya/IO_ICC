@@ -233,6 +233,10 @@ class IO_ICC {
     }
     function dumpTagTable($opts = array()) {
         $tagTable = $this->_tagTable;
+        if (count($tagTable) === 0) {
+            echo "TagTable: (no entry)".PHP_EOL;
+            return ;
+        }
         $hexdump = ! empty($opts['hexdump']);
         $tagTableCount = count($tagTable);
         echo "TagTable: (Count:$tagTableCount)".PHP_EOL;
