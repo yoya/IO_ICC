@@ -143,7 +143,7 @@ class IO_ICC {
         $writer->putUI32BE($tagTableCount);
         list($tableOffset, $dummy) = $writer->getOffset();
         foreach ($tagTable as $tagInfo) {
-            $writer->putData($tagInfo['Signature'], 4);
+            $writer->putData("    ", 4);
             $writer->putUI32BE(0); // Offset
             $writer->putUI32BE(0); // Size
         }
@@ -152,6 +152,7 @@ class IO_ICC {
         foreach ($tags as $idx => &$tag) {
             $writer->nByteAlign(4, "\0");
             list($tagOffset, $dummy) = $writer->getOffset();
+            $sig = $tag->signature;
             $tagData = $tag->build();
             $tagSize = strlen($tagData);
             $tagMD5  = md5($tagData);
@@ -161,10 +162,12 @@ class IO_ICC {
             if (empty($this->_tagMD5s[$tagMD5])) {
                 $this->_tagMD5s[$tagMD5] = $tag;
                 $writer->putData($tagData);
+                $writer->setData($sig, $currTableOffset, 4);
                 $writer->setUI32BE($tagOffset, $currTableOffset + 4);
                 $writer->setUI32BE($tagSize, $currTableOffset + 8);
             } else {
                 $tag = $this->_tagMD5s[$tagMD5];
+                $writer->setData($sig, $currTableOffset, 4, "\0");
                 $writer->setUI32BE($tag->_Offset, $currTableOffset + 4);
                 $writer->setUI32BE($tag->_Size, $currTableOffset + 8);
             }
