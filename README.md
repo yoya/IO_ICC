@@ -42,6 +42,14 @@ type:curv
 CurveValues:2.19921875
 % php vendor/yoya/io_icc/sample/iccedit.php GBR.icc gTRC CurveValues:0.82 > GBR_gTRC-0.82.icc
 ```
+## iccdeltags
+
+```
+% php vendor/yoya/io_icc/sample/iccdeltags.php sRGB_v4_ICC_preference_displayclass.icc | grep B2A
+B2A0
+B2A1
+% php vendor/yoya/io_icc/sample/iccdeltags.php sRGB_v4_ICC_preference_displayclass.icc B2A0 B2A1 > sRGB_v4_ICC_preference_displayclass_noB2A.icc
+```
 
 # icc profile sample
 
