@@ -19,4 +19,16 @@ class IO_ICC_Editor extends IO_ICC {
             }
         }
     }
+    function deleteTag($delsig) {
+        foreach ($this->_tagTable as $idx => &$tag) {
+            if ($tag['Signature'] === $delsig)  {
+                unset($this->_tagTable[$idx]);
+            }
+        }
+        foreach ($this->_tags as $idx => &$tag) {
+            if ($tag->signature === $delsig)  {
+                unset($this->_tags[$idx]);
+            }
+        }
+    }
 }
