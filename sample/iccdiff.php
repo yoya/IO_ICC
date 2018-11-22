@@ -50,7 +50,7 @@ function verifyCheckICC_recursive($icc1, $icc2, $key_list) {
     if (is_null($icc1)) {
         ;
     } else if (is_array($icc1) || is_object($icc1)) {
-        if (is_array($icc1) == false) {
+        if (! is_array($icc1)) {
             $icc1 = (array) $icc1;
             $icc2 = (array) $icc2;
         }
