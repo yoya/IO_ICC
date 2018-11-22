@@ -20,10 +20,11 @@ class IO_ICC_Tag {
     function parse($reader, $tagInfo, $opts = array()) {
         $this->tagInfo = $tagInfo;
         $this->signature = $tagInfo['Signature'];
-        $reader->setOffset($tagInfo['Offset'], 0);
-        $this->content = $reader->getData($tagInfo['Size']);
+        $this->_Offset = $tagInfo['Offset'];
+        $this->_Size = $tagInfo['Size'];
+        $reader->setOffset($this->_Offset, 0);
+        $this->content = $reader->getData($this->_Size);
         $this->type = substr($this->content, 0, 4);
-
     }
     function dump($opts = array()) {
         $tagInfo = $this->tagInfo;
