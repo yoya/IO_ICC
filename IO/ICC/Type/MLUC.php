@@ -7,6 +7,7 @@ class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
     const DESCRIPTION = 'MultiLocalazed Unicode';
     var $type = null;
     var $strings = null;
+    var $records = null;
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);

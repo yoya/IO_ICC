@@ -12,6 +12,7 @@ class IO_ICC_Type_MFT2 extends IO_ICC_Type_Base {
     var $matrix;
     var $nInputTableEntries, $nOutputTableEntries;
     var $inputTables, $clutTable, $outputTables;
+    var $type;
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);

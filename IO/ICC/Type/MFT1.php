@@ -11,6 +11,8 @@ class IO_ICC_Type_MFT1 extends IO_ICC_Type_Base {
     var $nCLUTGridPoints;
     var $matrix;
     var $inputTables, $clutTable, $outputTables;
+    var $nInputTableEntries, $nOutputTableEntries;
+    var $type;
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);

@@ -7,6 +7,7 @@ class IO_ICC_Type_SF32 extends IO_ICC_Type_Base {
     const DESCRIPTION = 'Signed Fixed 32';
     var $text = null;
     var $values = null;
+    var $type = null;
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
