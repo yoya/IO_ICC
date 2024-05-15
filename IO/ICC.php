@@ -181,18 +181,20 @@ class IO_ICC {
     }
 
     function dump($opts = array()) {
-        echo "Header:".PHP_EOL;
-        $this->dumpHeader($opts + ['indent' => 4]);
-        $this->dumpTagTable($opts + ['indent' => 4]);
-    }
-    function dumpHeader($opts = array()) {
-        $header = $this->_header;
         $hexdump = ! empty($opts['hexdump']);
+        $opts['hexdump'] = $hexdump;
         if ($hexdump) {
             $iobit = new IO_Bit();
             $iobit->input($this->_iccdata);
             $opts['iobit'] = $iobit;
         }
+        echo "Header:".PHP_EOL;
+        $this->dumpHeader($opts + ['indent' => 4]);
+        $this->dumpTagTable($opts + ['indent' => 4]);
+    }
+    function dumpHeader($opts = array()) {
+        $hexdump = $opts['hexdump'];
+        $header = $this->_header;
         foreach ($header as $key => $value) {
             if ((is_array($value)) || ($value instanceof ArrayAccess)) {
                 if (! empty($opts['indent'])) {
@@ -228,6 +230,7 @@ class IO_ICC {
             }
         }
         if ($hexdump) {
+            $iobit = $opts['iobit'];
             $iobit->hexdump(0, self::HEADER_SIZE);
         }
     }
@@ -237,7 +240,7 @@ class IO_ICC {
             echo "TagTable: (no entry)".PHP_EOL;
             return ;
         }
-        $hexdump = ! empty($opts['hexdump']);
+        $hexdump = $opts['hexdump'];
         $tagTableCount = count($tagTable);
         echo "TagTable: (Count:$tagTableCount)".PHP_EOL;
         foreach ($tagTable as $tagInfo) {
@@ -249,6 +252,7 @@ class IO_ICC {
         if ($hexdump) {
             // tagTableCount(4) + tagTableCount * (signature + offset + size)
             $tagTableSize = 4 + $tagTableCount * (4 + 4 + 4);
+            $iobit = $opts['iobit'];
             $iobit->hexdump(self::HEADER_SIZE, $tagTableSize);
         }
         // Tags
