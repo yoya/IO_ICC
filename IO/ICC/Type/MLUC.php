@@ -8,6 +8,7 @@ class IO_ICC_Type_MLUC extends IO_ICC_Type_Base {
     var $type = null;
     var $strings = null;
     var $records = null;
+    var $ascii = null;
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
