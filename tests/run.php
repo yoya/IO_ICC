@@ -184,5 +184,34 @@ check('iccheader per file', array('mntr', 'prtr'),
 $out = runSample('iccedit.php', array($v43, 'header', 'RenderingIntent:1'));
 check('iccedit header', '00000001', bin2hex(substr($out, 64, 4)));
 
+// iccgbr: non-cubic CLUT grid 2x3x4, entry k holds value k
+$clut = chr(2).chr(3).chr(4).str_repeat("\0", 13).chr(1)."\0\0\0";
+for ($k = 0; $k < 2 * 3 * 4 * 3; $k++) {
+    $clut .= chr($k);
+}
+$offMat = 32 + 36; $offM = $offMat + 48; $offC = $offM + 36; $offA = $offC + strlen($clut);
+$lut = "mAB \0\0\0\0".chr(3).chr(3)."\0\0".pack('N5', 32, $offMat, $offM, $offC, $offA).
+    $identity.$identity.$identity.$matrix.$identity.$identity.$identity.$clut.$identity.$identity.$identity;
+$out = runSample('iccgbr.php', array(tempICC(icc(array(array('A2B0', $lut))))));
+try {
+    $icc = new IO_ICC_Editor();
+    $icc->parse($out);
+    $icc->_tags[0]->parseTagContent();
+    $c = $icc->_tags[0]->tag->clut;
+    $bad = 0;
+    for ($r = 0; $r < 2; $r++) {
+        for ($g = 0; $g < 3; $g++) {
+            for ($b = 0; $b < 4; $b++) {
+                if ($c['Data'][(($g * 4 + $b) * 2 + $r) * 3] !== (($r * 3 + $g) * 4 + $b) * 3) {
+                    $bad++;
+                }
+            }
+        }
+    }
+    check('iccgbr non-cubic grid', array(array(3, 4, 2), 0), array($c['Grid'], $bad));
+} catch (Exception $e) {
+    check('iccgbr non-cubic grid', 'no exception', substr($out, 0, 200));
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

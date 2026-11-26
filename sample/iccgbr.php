@@ -31,8 +31,8 @@ function convertCLUT2GBR_A2B($grid, $data) {
     for ($i1= 0 ; $i1 < $grid1  ; $i1++) {
         for ($i2 = 0 ; $i2 < $grid2  ; $i2++) {
             for ($i3 = 0 ; $i3 < $grid3  ; $i3++) {
-                $src_i = ((($i1 * $grid1) + $i2) * $grid2) + $i3;
-                $dst_i = ((($i2 * $grid2) + $i3) * $grid3) + $i1;
+                $src_i = ((($i1 * $grid2) + $i2) * $grid3) + $i3;
+                $dst_i = ((($i2 * $grid3) + $i3) * $grid1) + $i1;
                 $arr[3*$dst_i + 0] = $data[3*$src_i + 0];
                 $arr[3*$dst_i + 1] = $data[3*$src_i + 1];
                 $arr[3*$dst_i + 2] = $data[3*$src_i + 2];
