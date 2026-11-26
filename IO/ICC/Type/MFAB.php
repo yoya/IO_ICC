@@ -279,6 +279,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
         }
         // Matrix
         if (is_null($this->matrix) === false) {
+            $writer->nByteAlign(4, "\0");
             list($offsetToMatrix, $dummy) = $writer->getOffset();
             $writer->setUI32BE($offsetToMatrix ,$offsetToMatrixOffset);
             foreach ($this->matrix as $value) {

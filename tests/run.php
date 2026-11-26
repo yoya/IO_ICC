@@ -127,5 +127,17 @@ foreach (array('A2B0' => 'mAB ', 'B2A0' => 'mBA ') as $sig => $type) {
     }
 }
 
+/*
+ * mAB / mBA build: the matrix must start on a 4-byte boundary
+ */
+$gamma = "curv\0\0\0\0".pack('N', 1).pack('n', 0x0233); // 14 bytes
+foreach (array('A2B0' => 'mAB ', 'B2A0' => 'mBA ') as $sig => $type) {
+    $lut = $type."\0\0\0\0".chr(3).chr(3)."\0\0".pack('N5', 32, 80, 0, 0, 0).
+        $gamma."\0\0".$gamma."\0\0".$gamma."\0\0".$matrix;
+    $t = parseTag($sig, $lut);
+    $offsets = unpack('N2', substr($t->buildContent(), 12, 8));
+    check(trim($type).' matrix offset aligned', 80, $offsets[2]);
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
