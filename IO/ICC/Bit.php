@@ -15,13 +15,13 @@ class IO_ICC_Bit extends IO_Bit {
         return $this->getUI16BE() / 0x100;
     }
     function putU8Fixed8Number($value) {
-        return $this->putUI16BE($value * 0x100);
+        return $this->putUI16BE((int) round($value * 0x100));
     }
     function getS15Fixed16Number() {
         return $this->getSI32BE() / 0x10000;
     }
     function putS15Fixed16Number($value) {
-        return $this->putSI32BE($value * 0x10000);
+        return $this->putSI32BE((int) round($value * 0x10000));
     }
     function getDateTimeNumber() {
         $dateTime = array(

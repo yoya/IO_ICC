@@ -238,5 +238,14 @@ try {
     check('sf32 trailing fragment', 'no exception', get_class($e).': '.$e->getMessage());
 }
 
+/*
+ * fixed-point writers round to the nearest value
+ */
+$b = new IO_ICC_Bit();
+$b->putU8Fixed8Number(0.82);
+$b->putS15Fixed16Number(0.3);
+$b->putS15Fixed16Number(-0.3);
+check('fixed-point rounding', '00d200004ccdffffb333', bin2hex($b->output()));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
