@@ -40,7 +40,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $this->bCurves = null;
         } else {
             $reader->setOffset($offsetToBCurve, 0);
-            $bCurveContent = $reader->getData($offsetToMatrix - $offsetToBCurve);
+            $bCurveContent = $reader->getDataUntil(null);
             $bCurves = array();
             for ($i = 0 ; $i < $this->nOutput; $i++ ) {
                 $bCurve = IO_ICC_Type::makeType($bCurveContent, $this->_iccInfo);
@@ -70,7 +70,7 @@ class IO_ICC_Type_MFAB extends IO_ICC_Type_Base {
             $this->mCurves = null;
         } else {
             $reader->setOffset($offsetToMCurve, 0);
-            $mCurveContent = $reader->getData($offsetToMatrix - $offsetToMCurve);
+            $mCurveContent = $reader->getDataUntil(null);
             $mCurves = array();
             for ($i = 0 ; $i < $this->nOutput; $i++ ) {
                 $mCurve = IO_ICC_Type::makeType($mCurveContent, $this->_iccInfo);

@@ -99,5 +99,33 @@ $icc->build();
 restore_error_handler();
 check('build without diagnostics', array(), $errors);
 
+/*
+ * mAB / mBA: B and M curves must not depend on the matrix offset
+ */
+$identity = "curv\0\0\0\0".pack('N', 0); // 12 bytes
+$matrix = s15(1).s15(0).s15(0).s15(0).s15(1).s15(0).s15(0).s15(0).s15(1).s15(0).s15(0).s15(0);
+foreach (array('A2B0' => 'mAB ', 'B2A0' => 'mBA ') as $sig => $type) {
+    $name = trim($type);
+    $hdr = $type."\0\0\0\0".chr(3).chr(3)."\0\0";
+    // B curves only (no matrix)
+    $lut = $hdr.pack('N5', 32, 0, 0, 0, 0).$identity.$identity.$identity;
+    try {
+        $t = parseTag($sig, $lut);
+        check("$name B curves only", 3, count($t->bCurves));
+        check("$name B curves only rebuild", bin2hex($lut), bin2hex($t->buildContent()));
+    } catch (Exception $e) {
+        check("$name B curves only", 'no exception', get_class($e).': '.$e->getMessage());
+    }
+    // M curves, matrix, B curves (B placed after the matrix)
+    $offM = 32; $offMat = $offM + 36; $offB = $offMat + 48;
+    $lut = $hdr.pack('N5', $offB, $offMat, $offM, 0, 0).$identity.$identity.$identity.$matrix.$identity.$identity.$identity;
+    try {
+        $t = parseTag($sig, $lut);
+        check("$name B after matrix", array(3, 3), array(count($t->bCurves), count($t->mCurves)));
+    } catch (Exception $e) {
+        check("$name B after matrix", 'no exception', get_class($e).': '.$e->getMessage());
+    }
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
