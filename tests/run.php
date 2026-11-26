@@ -296,6 +296,15 @@ $icc = new IO_ICC();
 $icc->parse(substr_replace($d, "\x02\x10", 8, 2));
 $out = $icc->build();
 check('profile ID v2', str_repeat('00', 16), bin2hex(substr($out, 84, 16)));
+$icc = new IO_ICC();
+$icc->parse(substr_replace(substr_replace($d, "\x02\x10", 8, 2), str_repeat("\xab", 16), 84, 16));
+check('profile ID parse', str_repeat("\xab", 16), $icc->_header['ProfileID']);
+$out = $icc->build();
+check('profile ID v2 with ID', profileMD5($out), bin2hex(substr($out, 84, 16)));
+$d = file_get_contents("$root/test/sRGB_IEC61966-2-1_black_scaled.icc");
+$icc = new IO_ICC();
+$icc->parse($d);
+check('profile ID copy (v2 black_scaled)', md5($d), md5($icc->build()));
 foreach (array('sRGB_v4_ICC_preference.icc', 'sRGB_v4_ICC_preference_displayclass.icc',
                'sRGB_ICC_v4_appearance_beta_displayclass.icc') as $f) {
     $d = file_get_contents("$root/test/$f");

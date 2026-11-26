@@ -68,7 +68,9 @@ function displayKeyValue($key_value, $key_prefix) {
         if ($key[0] === "_") {
             continue; // skip internal value
         }
-        if ((! is_array($value)) && (! ($value instanceof ArrayAccess))) {
+        if ($key_prefix.$key === 'ProfileID') {
+            echo "$key_prefix$key:".bin2hex($value).PHP_EOL; // 16-byte MD5
+        } else if ((! is_array($value)) && (! ($value instanceof ArrayAccess))) {
             echo "$key_prefix$key:$value".PHP_EOL;
         } else if ((isset($value[0])) && (! is_array($value[0])) && (! ($value[0] instanceof ArrayAccess))) {
             echo "$key_prefix$key:".implode(",", (array) $value).PHP_EOL;

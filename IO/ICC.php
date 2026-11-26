@@ -83,6 +83,7 @@ class IO_ICC {
         $header['XYZvalueD50'] = $reader->getXYZNumber();
 
         $header['CreatorID'] = $reader->getUI32BE();
+        $header['ProfileID'] = $reader->getData(16); // MD5 (16 bytes)
         $this->_header = $header;
         // Body
         $reader->setOffset(self::HEADER_SIZE, 0);
@@ -191,7 +192,11 @@ class IO_ICC {
         $writer->nByteAlign(4, "\0");
         $data = $writer->output();
         $writer->setUI32BE(strlen($data), 0);
-        if ($header['ProfileVersion']['Major'] >= 4) {
+        // Profile ID: always for v4 and later, for v2 only when the parsed
+        // profile had one.
+        $hasID = isset($header['ProfileID']) &&
+            ($header['ProfileID'] !== str_repeat("\0", 16));
+        if (($header['ProfileVersion']['Major'] >= 4) || $hasID) {
             // Profile ID (bytes 84-99): MD5 of the profile with the profile
             // flags, rendering intent and profile ID fields set to 0.
             $data = $writer->output();
@@ -237,7 +242,9 @@ class IO_ICC {
                 if (! empty($opts['indent'])) {
                     echo str_repeat(" ", $opts['indent']);
                 }
-                if (is_bool($value)) {
+                if ($key === 'ProfileID') {
+                    echo "$key:".bin2hex($value);
+                } else if (is_bool($value)) {
                     echo "$key:".($value?"true":"false");
                 } else if (is_float($value)) {
                     printf("%s:%.04f", $key, round($value, 4));
