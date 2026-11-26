@@ -59,7 +59,7 @@ class IO_ICC_Type_PCurve extends IO_ICC_Type_Base {
         $count = $fieldLength / 4;
         $params = $this->params;
         if (count($params) !== $count) {
-            throw new IO_ICC_Exception("count(params):{count($params)} !== count:$count");
+            throw new IO_ICC_Exception("count(params):".count($params)." !== count:$count");
         }
         foreach ($params as $param) {
             $writer->putS15Fixed16Number($param);

@@ -213,5 +213,18 @@ try {
     check('iccgbr non-cubic grid', 'no exception', substr($out, 0, 200));
 }
 
+/*
+ * para build with a wrong parameter count reports IO_ICC_Exception
+ */
+$t = parseTag('rTRC', "para\0\0\0\0"."\0\0\0\0".s15(2.2));
+$t->functionType = 3; // needs 5 parameters
+try {
+    $t->buildContent();
+    $e = null;
+} catch (Throwable $e) {
+}
+check('para param count error', 'IO_ICC_Exception: count(params):1 !== count:5',
+      $e ? get_class($e).': '.$e->getMessage() : null);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
