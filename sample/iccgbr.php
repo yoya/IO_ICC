@@ -24,6 +24,10 @@ $icc = new IO_ICC_Editor();
 
 $icc->parse($iccdata);
 
+// The GBR profile reads channel 1,2,3 as the original G,B,R:
+// (new rXYZ, gXYZ, bXYZ) = (old gXYZ, bXYZ, rXYZ), the TRCs likewise.
+
+// A2B: CLUT input is the device RGB, so the grid axes are reordered.
 function convertCLUT2GBR_A2B($grid, $data) {
     list($grid1, $grid2, $grid3) = $grid;
     $gridNum = $grid1 * $grid2 * $grid3;
@@ -42,6 +46,7 @@ function convertCLUT2GBR_A2B($grid, $data) {
     return [[$grid2, $grid3, $grid1], $arr];
 }
 
+// B2A: CLUT input is the PCS (grid unchanged), the output channels are reordered.
 function convertCLUT2GBR_B2A($grid, $data) {
     list($grid1, $grid2, $grid3) = $grid;
     $gridNum = $grid1 * $grid2 * $grid3;
@@ -51,11 +56,11 @@ function convertCLUT2GBR_B2A($grid, $data) {
         $arr[3*$i + 1] = $data[3*$i + 2];
         $arr[3*$i + 2] = $data[3*$i + 0];
     }
-    return [[$grid2, $grid3, $grid1], $arr];
+    return $arr;
 }
 
-
 $rgbXYZtags = [];
+$rgbTRCtags = [];
 foreach ($icc->_tags as $idx => &$tag) {
     $sig = $tag->signature;
     switch ($sig) {
@@ -65,26 +70,39 @@ foreach ($icc->_tags as $idx => &$tag) {
         $tag->parseTagContent();
         $rgbXYZtags[$sig] = $tag->tag->xyz;
         break;
+    case 'rTRC':
+    case 'gTRC':
+    case 'bTRC':
+        $rgbTRCtags[$sig] = [$tag->content, $tag->type];
+        break;
     case 'A2B0':
     case 'A2B1':
-        $tag->parseTagContent();
-        $grid = $tag->tag->clut['Grid'];
-        $data = $tag->tag->clut['Data'];
-        list($grid, $data) = convertCLUT2GBR_A2B($grid, $data);
-        $tag->tag->clut['Grid'] = $grid;
-        $tag->tag->clut['Data'] = $data;
-        break;
+    case 'A2B2':
     case 'B2A0':
     case 'B2A1':
+    case 'B2A2':
         $tag->parseTagContent();
-        $grid = $tag->tag->clut['Grid'];
-        $data = $tag->tag->clut['Data'];
-        list($grid, $data) = convertCLUT2GBR_B2A($grid, $data);
-        $tag->tag->clut['Grid'] = $grid;
-        $tag->tag->clut['Data'] = $data;
+        $lut = $tag->tag;
+        // device side: A curves and CLUT (mAB: A->CLUT->M->Matrix->B, mBA: reverse)
+        if ((($lut->type !== 'mAB ') && ($lut->type !== 'mBA ')) ||
+            ($lut->nInput !== 3) || ($lut->nOutput !== 3) ||
+            is_null($lut->clut) || is_null($lut->aCurves)) {
+            fwrite(STDERR, "$sig: unsupported (type:{$tag->type}, need mAB/mBA 3ch with A curves and CLUT)\n");
+            exit(1);
+        }
+        $a = $lut->aCurves;
+        $lut->aCurves = [$a[1], $a[2], $a[0]];
+        if ($lut->type === 'mAB ') {
+            list($lut->clut['Grid'], $lut->clut['Data']) =
+                convertCLUT2GBR_A2B($lut->clut['Grid'], $lut->clut['Data']);
+        } else {
+            $lut->clut['Data'] =
+                convertCLUT2GBR_B2A($lut->clut['Grid'], $lut->clut['Data']);
+        }
         break;
     }
 }
+unset($tag);
 
 if (count($rgbXYZtags) == 3) {
     foreach ($icc->_tags as $idx => &$tag) {
@@ -101,6 +119,19 @@ if (count($rgbXYZtags) == 3) {
             break;
         }
     }
+    unset($tag);
+}
+
+if (count($rgbTRCtags) == 3) {
+    $from = ['rTRC' => 'gTRC', 'gTRC' => 'bTRC', 'bTRC' => 'rTRC'];
+    foreach ($icc->_tags as $idx => &$tag) {
+        $sig = $tag->signature;
+        if (isset($from[$sig])) {
+            list($tag->content, $tag->type) = $rgbTRCtags[$from[$sig]];
+            $tag->tag = null;
+        }
+    }
+    unset($tag);
 }
 
 $icc->rebuild();

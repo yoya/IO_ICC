@@ -304,5 +304,52 @@ foreach (array('sRGB_v4_ICC_preference.icc', 'sRGB_v4_ICC_preference_displayclas
     check("profile ID copy ($f)", md5($d), md5($icc->build()));
 }
 
+/*
+ * iccgbr: TRCs and A curves follow the channel rotation (new R,G,B = old G,B,R);
+ * the mBA CLUT input is the PCS, so its grid is kept and its outputs rotate
+ */
+function gammaCurv($g) {
+    return "curv\0\0\0\0".pack('N', 1).pack('n', $g)."\0\0"; // 16 bytes
+}
+$clut = chr(2).chr(3).chr(4).str_repeat("\0", 13).chr(1)."\0\0\0";
+for ($k = 0; $k < 2 * 3 * 4 * 3; $k++) {
+    $clut .= chr($k);
+}
+$lutTag = function ($type) use ($identity, $clut) {
+    $offC = 32 + 36; $offA = $offC + strlen($clut);
+    return $type."\0\0\0\0".chr(3).chr(3)."\0\0".pack('N5', 32, 0, 0, $offC, $offA).
+        $identity.$identity.$identity.$clut.gammaCurv(0x100).gammaCurv(0x200).gammaCurv(0x300);
+};
+$out = runSample('iccgbr.php', array(tempICC(icc(array(
+    array('rTRC', gammaCurv(0x100)), array('gTRC', gammaCurv(0x200)), array('bTRC', gammaCurv(0x300)),
+    array('A2B0', $lutTag('mAB ')), array('B2A0', $lutTag('mBA ')))))));
+try {
+    $icc = new IO_ICC_Editor();
+    $icc->parse($out);
+    $res = array();
+    foreach ($icc->_tags as $tag) {
+        $tag->parseTagContent();
+        $t = $tag->tag;
+        if ($tag->signature[1] === 'T') { // rTRC, gTRC, bTRC
+            $res[$tag->signature] = $t->CurveValues[0];
+            continue;
+        }
+        $a = array();
+        foreach ($t->aCurves as $c) {
+            $a[] = $c->CurveValues[0];
+        }
+        $res[$tag->signature] = array($a, $t->clut['Grid']);
+        if ($tag->signature === 'B2A0') {
+            $res['B2A0 data'] = array($t->clut['Data'][0], $t->clut['Data'][1], $t->clut['Data'][2]);
+        }
+    }
+    check('iccgbr curves and B2A', array(
+        'rTRC' => 2, 'gTRC' => 3, 'bTRC' => 1,
+        'A2B0' => array(array(2, 3, 1), array(3, 4, 2)),
+        'B2A0' => array(array(2, 3, 1), array(2, 3, 4)), 'B2A0 data' => array(1, 2, 0)), $res);
+} catch (Exception $e) {
+    check('iccgbr curves and B2A', 'no exception', substr($out, 0, 200));
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
