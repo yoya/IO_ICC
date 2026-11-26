@@ -181,5 +181,8 @@ $out = runSample('iccheader.php', array($v43, $v21));
 check('iccheader per file', array('mntr', 'prtr'),
       preg_match_all('/DeviceClass: *(\w+)/', $out, $m) ? $m[1] : $out);
 
+$out = runSample('iccedit.php', array($v43, 'header', 'RenderingIntent:1'));
+check('iccedit header', '00000001', bin2hex(substr($out, 64, 4)));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

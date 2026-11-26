@@ -131,7 +131,9 @@ if ($argc == 3) {
             exit(1);
         }
     }
-    $tag->content = null; // rebuild
+    if (isset($tag)) {
+        $tag->content = null; // rebuild
+    }
     echo $icc->build();
 }
 
