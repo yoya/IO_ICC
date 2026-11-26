@@ -54,21 +54,30 @@ class IO_ICC {
         $header['DataTimeCreated'] = $reader->getDateTimeNumber();
         $header['acspSignature'] = $reader->getData(4);
         $header['PrimaryPlatform'] = $reader->getData(4);
-        $cmmOptions1 = $reader->getUI16BE();
-        $cmmOptions2 = $reader->getUI16BE();
+        // Profile flags: bit 0 is the least significant bit of the 32-bit value.
+        // bits 0-15 are for the ICC, bits 16-31 are for the CMM (vendor).
+        $flags = $reader->getUI32BE();
         $header['CMMOptions'] =
             array (
-                   'EmbedProfile' => ($cmmOptions1 & 1) != 0,
-                   'Independently' => ($cmmOptions1 & 2) != 0,
+                   'EmbedProfile' => ($flags & 1) != 0,
+                   'Independently' => ($flags & 2) != 0,
+                   'Reserved' => $flags & 0xFFFC,  // bits 2-15 (in place)
+                   'Vendor' => ($flags >> 16) & 0xFFFF, // bits 16-31
                    );
         $header['DeviceManufacturer'] = $reader->getUI32BE();
         $header['DeviceModel'] = $reader->getUI32BE();
-        $deviceAttribute1 = $reader->getUI32BE();
-        $deviceAttribute2 = $reader->getUI32BE();
+        // Device attributes: 64-bit value, bits 0-31 (bytes 60-63) are for
+        // the ICC, bits 32-63 (bytes 56-59) are vendor specific.
+        $attrVendor = $reader->getUI32BE();
+        $attr = $reader->getUI32BE();
         $header['DeviceAttribute'] =
             array (
-                   'ReflectiveOrTransparency' => ($deviceAttribute1 & 1) != 0,
-                   'GlossyOnMatte'            => ($deviceAttribute1 & 2) != 0,
+                   'ReflectiveOrTransparency' => ($attr & 1) != 0,
+                   'GlossyOnMatte'            => ($attr & 2) != 0,
+                   'PositiveOrNegative'       => ($attr & 4) != 0,
+                   'ColorOrBlackAndWhite'     => ($attr & 8) != 0,
+                   'Reserved' => $attr & 0xFFFFFFF0, // bits 4-31 (in place)
+                   'Vendor' => $attrVendor,          // bits 32-63
                    );
         $header['RenderingIntent'] = $reader->getUI32BE();
         $header['XYZvalueD50'] = $reader->getXYZNumber();
@@ -116,20 +125,25 @@ class IO_ICC {
         $writer->putDateTimeNumber($header['DataTimeCreated']);
         $writer->putData($header['acspSignature'], 4);
         $writer->putData($header['PrimaryPlatform'], 4);
-        $cmmOptions1 = 
-            ($header['CMMOptions']['EmbedProfile']?1:0) |
-            ($header['CMMOptions']['Independently']?2:0);
-        $cmmOptions2 = 0;
-        $writer->putUI16BE($cmmOptions1);
-        $writer->putUI16BE($cmmOptions2);
+        $opt = $header['CMMOptions'] + array('Reserved' => 0, 'Vendor' => 0);
+        $flags =
+            ($opt['EmbedProfile']?1:0) |
+            ($opt['Independently']?2:0) |
+            ($opt['Reserved'] & 0xFFFC) |
+            (($opt['Vendor'] & 0xFFFF) << 16);
+        $writer->putUI32BE($flags);
         $writer->putUI32BE($header['DeviceManufacturer']);
         $writer->putUI32BE($header['DeviceModel']);
-        $deviceAttribute1 = 
-            ($header['DeviceAttribute']['ReflectiveOrTransparency']?1:0) |
-            ($header['DeviceAttribute']['GlossyOnMatte']?2:0);
-        $deviceAttribute2 = 0;
-        $writer->putUI32BE($deviceAttribute1);
-        $writer->putUI32BE($deviceAttribute2);
+        $attr = $header['DeviceAttribute'] +
+            array('PositiveOrNegative' => false, 'ColorOrBlackAndWhite' => false,
+                  'Reserved' => 0, 'Vendor' => 0);
+        $writer->putUI32BE($attr['Vendor']);
+        $writer->putUI32BE(
+            ($attr['ReflectiveOrTransparency']?1:0) |
+            ($attr['GlossyOnMatte']?2:0) |
+            ($attr['PositiveOrNegative']?4:0) |
+            ($attr['ColorOrBlackAndWhite']?8:0) |
+            ($attr['Reserved'] & 0xFFFFFFF0));
         $writer->putUI32BE($header['RenderingIntent']);
         $writer->putXYZNumber($header['XYZvalueD50']);
 

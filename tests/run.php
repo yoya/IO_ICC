@@ -247,5 +247,35 @@ $b->putS15Fixed16Number(0.3);
 $b->putS15Fixed16Number(-0.3);
 check('fixed-point rounding', '00d200004ccdffffb333', bin2hex($b->output()));
 
+/*
+ * header profile flags / device attributes: ICC bits counted from the LSB,
+ * vendor bits kept, all bits written back
+ */
+$d = icc(array(array('rTRC', $curv)));
+$d = substr_replace($d, pack('N', 0x00010003), 44, 4);
+$d = substr_replace($d, pack('N2', 0x0000000C, 0x12345678), 56, 8);
+$icc = new IO_ICC();
+$icc->parse($d);
+check('header flags decode',
+      array('EmbedProfile' => true, 'Independently' => true, 'Reserved' => 0, 'Vendor' => 1),
+      $icc->_header['CMMOptions']);
+check('header attributes decode',
+      array('ReflectiveOrTransparency' => false, 'GlossyOnMatte' => false,
+            'PositiveOrNegative' => false, 'ColorOrBlackAndWhite' => true,
+            'Reserved' => 0x12345670, 'Vendor' => 0x0000000C),
+      $icc->_header['DeviceAttribute']);
+$out = $icc->build();
+check('header flags/attributes rebuild', bin2hex(substr($d, 44, 4).substr($d, 56, 8)),
+      bin2hex(substr($out, 44, 4).substr($out, 56, 8)));
+$icc = new IO_ICC();
+$icc->parse(file_get_contents("$root/test/JapanColor2011Coated.icc"));
+check('header flags vendor bit (JapanColor)', array(false, 2),
+      array($icc->_header['CMMOptions']['EmbedProfile'], $icc->_header['CMMOptions']['Vendor']));
+$icc = new IO_ICC();
+$icc->parse(file_get_contents("$root/test/sRGB_IEC61966-2-1_black_scaled.icc"));
+check('header attributes vendor bit (black_scaled)', array(false, 1),
+      array($icc->_header['DeviceAttribute']['ReflectiveOrTransparency'],
+            $icc->_header['DeviceAttribute']['Vendor']));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
