@@ -226,5 +226,17 @@ try {
 check('para param count error', 'IO_ICC_Exception: count(params):1 !== count:5',
       $e ? get_class($e).': '.$e->getMessage() : null);
 
+/*
+ * sf32 with a trailing fragment shorter than a value
+ */
+require_once 'IO/ICC/Type/SF32.php';
+$t = new IO_ICC_Type_SF32();
+try {
+    $t->parseContent("sf32\0\0\0\0".s15(1)."\0\0");
+    check('sf32 trailing fragment', array(1), $t->values);
+} catch (Exception $e) {
+    check('sf32 trailing fragment', 'no exception', get_class($e).': '.$e->getMessage());
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

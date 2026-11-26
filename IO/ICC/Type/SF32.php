@@ -15,7 +15,7 @@ class IO_ICC_Type_SF32 extends IO_ICC_Type_Base {
         $reader->incrementOffset(4, 0); // skip
         //
         $values = array();
-        while ($reader->hasNextData(2)) {
+        while ($reader->hasNextData(4)) {
             $values []= $reader->getS15Fixed16Number();
         }
         $this->values = $values;
