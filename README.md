@@ -141,6 +141,9 @@ wtpt: X:0.9642 Y:1.0000 Z:0.8249
   解釈できないタグ型 (v5 の dict など) はバイト列のまま残します。
 - build は、中身が同じタグを 1 つにまとめ、タグ表から同じ場所を指します (rTRC, gTRC, bTRC が同じカーブのときなど)。
   タグは 4 バイト境界に整列し、ProfileSize を書き直します。
+  バージョン 4 以上のプロファイルでは Profile ID (MD5) を計算して書きます。
+- ヘッダの `CMMOptions` (Profile flags) と `DeviceAttribute` (Device attributes) は、ICC が定めるビットを真偽値で、
+  それ以外の ICC 用のビットを `Reserved` (元のビット位置のまま)、ベンダー用のビットを `Vendor` に持ち、build で全ビットを書き戻します。
 - 数値は ICC の固定小数点を PHP の float にして持ちます。大きな配列 (カーブ、CLUT) は `IO_ICC_FixedArray` (SplFixedArray) です。
 
 # 機能
@@ -155,10 +158,10 @@ wtpt: X:0.9642 Y:1.0000 Z:0.8249
 
 # 既知の制限
 
-- build はヘッダの Profile ID (MD5) を 0 で書きます。編集しないコピーでも消えます。
-- ヘッダの Profile flags (`CMMOptions`) と Device attributes (`DeviceAttribute`) は、ICC が定める下位のビットではなく上位のワードから読み書きしています。build で ICC 定義のビットが消えることがあります。
+- バージョン 2 のプロファイルでは、build は Profile ID の欄を 0 で書きます (元のファイルに ID があっても消えます)。
 - バージョンは BCD 2 桁として表示します。v4.2.0 は `Major:4 Minor:20` になります。
-- `iccgbr.php` が入れ替えるのは rXYZ/gXYZ/bXYZ と A2B/B2A の CLUT だけです。rTRC/gTRC/bTRC などチャンネルごとのカーブは入れ替えません。
+- `iccgbr.php` が扱うのは、rXYZ/gXYZ/bXYZ と rTRC/gTRC/bTRC によるプロファイルと、A カーブと CLUT を持つ 3 チャンネルの mAB/mBA (A2B0-2, B2A0-2) です。
+  v2 の mft1/mft2 などそれ以外の LUT があるとエラーで終了します。
 
 # Test
 
