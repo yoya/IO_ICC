@@ -65,7 +65,7 @@ class IO_ICC_Bit extends IO_Bit {
             if (is_null($pad)) {
                 $this->incrementOffset($nPadding, 0); // reader
             } else {
-                $this->putData(str_pad("\0", $nPadding)); // writer
+                $this->putData(str_repeat("\0", $nPadding)); // writer
             }
         }
     }

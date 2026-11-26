@@ -71,5 +71,19 @@ check('meas illuminant', 2, $t->stdIlluminant);
 check('meas flare', 0x10000, $t->measureFlare);
 check('meas rebuild', bin2hex($meas), bin2hex($t->buildContent()));
 
+/*
+ * writer padding must be NUL bytes
+ */
+$b = new IO_ICC_Bit();
+$b->putData("abcde");
+$b->nByteAlign(4, "\0");
+check('nByteAlign writer padding', '6162636465000000', bin2hex($b->output()));
+$curv = "curv\0\0\0\0".pack('N', 1).pack('n', 0x0233); // 14 bytes
+$xyz = "XYZ \0\0\0\0".s15(0.9642).s15(1.0).s15(0.8249);
+$icc = new IO_ICC_Editor();
+$icc->parse(icc(array(array('rTRC', $curv), array('wtpt', $xyz))));
+$out = @$icc->build();
+check('build padding between tags', '0000', bin2hex(substr($out, 128 + 4 + 24 + 14, 2)));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
