@@ -191,6 +191,14 @@ class IO_ICC {
         $writer->nByteAlign(4, "\0");
         $data = $writer->output();
         $writer->setUI32BE(strlen($data), 0);
+        if ($header['ProfileVersion']['Major'] >= 4) {
+            // Profile ID (bytes 84-99): MD5 of the profile with the profile
+            // flags, rendering intent and profile ID fields set to 0.
+            $data = $writer->output();
+            $data = substr_replace($data, "\0\0\0\0", 44, 4);
+            $data = substr_replace($data, "\0\0\0\0", 64, 4);
+            $writer->setData(md5($data, true), 84, 16);
+        }
         return $writer->output();
     }
 

@@ -277,5 +277,32 @@ check('header attributes vendor bit (black_scaled)', array(false, 1),
       array($icc->_header['DeviceAttribute']['ReflectiveOrTransparency'],
             $icc->_header['DeviceAttribute']['Vendor']));
 
+/*
+ * Profile ID: MD5 with flags, rendering intent and ID zeroed (v4), 0 for v2
+ */
+function profileMD5($d) {
+    $d = substr_replace($d, "\0\0\0\0", 44, 4);
+    $d = substr_replace($d, "\0\0\0\0", 64, 4);
+    return md5(substr_replace($d, str_repeat("\0", 16), 84, 16));
+}
+$d = icc(array(array('rTRC', $curv)));
+$d = substr_replace($d, pack('N', 3), 44, 4);
+$d = substr_replace($d, pack('N', 1), 64, 4);
+$icc = new IO_ICC();
+$icc->parse($d);
+$out = $icc->build();
+check('profile ID v4', profileMD5($out), bin2hex(substr($out, 84, 16)));
+$icc = new IO_ICC();
+$icc->parse(substr_replace($d, "\x02\x10", 8, 2));
+$out = $icc->build();
+check('profile ID v2', str_repeat('00', 16), bin2hex(substr($out, 84, 16)));
+foreach (array('sRGB_v4_ICC_preference.icc', 'sRGB_v4_ICC_preference_displayclass.icc',
+               'sRGB_ICC_v4_appearance_beta_displayclass.icc') as $f) {
+    $d = file_get_contents("$root/test/$f");
+    $icc = new IO_ICC();
+    $icc->parse($d);
+    check("profile ID copy ($f)", md5($d), md5($icc->build()));
+}
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
