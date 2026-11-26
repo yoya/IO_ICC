@@ -85,5 +85,19 @@ $icc->parse(icc(array(array('rTRC', $curv), array('wtpt', $xyz))));
 $out = @$icc->build();
 check('build padding between tags', '0000', bin2hex(substr($out, 128 + 4 + 24 + 14, 2)));
 
+/*
+ * build must not raise diagnostics (dynamic property deprecation)
+ */
+$errors = array();
+set_error_handler(function ($no, $str) use (&$errors) {
+    $errors []= $str;
+    return true;
+});
+$icc = new IO_ICC_Editor();
+$icc->parse(icc(array(array('rTRC', $curv))));
+$icc->build();
+restore_error_handler();
+check('build without diagnostics', array(), $errors);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

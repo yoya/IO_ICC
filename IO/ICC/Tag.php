@@ -14,7 +14,7 @@ class IO_ICC_Tag {
     var $signature = null;
     var $tag = null;
     //
-    var $_Offset, $_Size, $content, $type;
+    var $_Offset, $_Size, $_tagMD5, $content, $type;
     function __construct($iccInfo) {
         $this->iccInfo = $iccInfo;
     }
