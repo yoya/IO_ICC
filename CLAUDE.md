@@ -15,7 +15,7 @@ IO_ISOBMFF (IO/ISOBMFF.php の colr ボックスの処理) は `parse()`、`_tag
 
 `php -d include_path=.:../IO_Bit tests/run.php` で回帰テストを実行する (IO_Bit は vendor/ か include_path から読む。失敗すると終了コード 1)。バグを直したら、ここにテストを足す。
 
-`test/alltest.php` は `test/*.icc` を parse → rebuild → parse して違いを表示する目視用のもので、失敗しても終了コードは 0。JapanColor2011Coated.icc の desc の `_contentLength` の違いはいつも出る (データは失われていない)。
+`test/alltest.php` は `test/*.icc` を parse → rebuild → parse して違いを表示する目視用のもので、失敗しても終了コードは 0。現状は `test/*.icc` すべてで何も表示されない。
 
 # リリース作業
 
