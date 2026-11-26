@@ -13,6 +13,8 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
     var $unicode = null;
     var $scriptCode = null;
     var $macintosh = null;
+    // number of NULs after each string (the counts include them), kept for rebuild
+    var $asciiNulCount = null, $unicodeNulCount = null, $macintoshNulCount = null;
     function parseContent($content, $opts = array()) {
         $reader = new IO_ICC_Bit();
     	$reader->input($content);
@@ -22,6 +24,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if ($asciiCount > 0) {
             $ascii = $reader->getData($asciiCount);
             $this->ascii = IO_ICC_String::trimNullTerminate($ascii);
+            $this->asciiNulCount = $asciiCount - strlen($this->ascii);
         }
         $this->unicodeLanguage = $reader->getData(4);
         $unicodeCount = $reader->getUI32BE();
@@ -29,6 +32,8 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
             $ucs2be = $reader->getData($unicodeCount * 2);
             $unicode = mb_convert_encoding($ucs2be, 'UTF-8', 'UCS-2BE');
             $this->unicode = IO_ICC_String::trimNullTerminate($unicode);
+            $this->unicodeNulCount = $unicodeCount -
+                strlen(mb_convert_encoding($this->unicode, 'UCS-2BE', 'UTF-8')) / 2;
         }
         $this->scriptCode = $reader->getUI16BE();
         $macintoshCount = $reader->getUI8();
@@ -36,6 +41,7 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if ($macintoshCount > 0) {
             $macintosh = $reader->getData($macintoshCount);
             $this->macintosh = IO_ICC_String::trimNullTerminate($macintosh);
+            $this->macintoshNulCount = $macintoshCount - strlen($this->macintosh);
         }
         // list($this->_contentLength, $dummy)  = $reader->getOffset();
     }
@@ -62,7 +68,8 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if (is_null($this->ascii)) {
             $writer->putUI32BE(0);
         } else {
-            $ascii = IO_ICC_String::fixAsciiZ($this->ascii);
+            $ascii = IO_ICC_String::trimNullTerminate($this->ascii).
+                str_repeat("\0", max(1, (int) $this->asciiNulCount));
             $writer->putUI32BE(strlen($ascii));
             $writer->putData($ascii);
         }
@@ -70,7 +77,8 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
         if (is_null($this->unicode)) {
             $writer->putUI32BE(0);
         } else {
-            $unicode = IO_ICC_String::fixAsciiZ($this->unicode);
+            $unicode = IO_ICC_String::trimNullTerminate($this->unicode).
+                str_repeat("\0", max(1, (int) $this->unicodeNulCount));
             $ucs2be = mb_convert_encoding($unicode, 'UCS-2BE', 'UTF-8');
             $writer->putUI32BE(strlen($ucs2be) / 2);
             $writer->putData($ucs2be);
@@ -81,7 +89,8 @@ class IO_ICC_Type_Desc extends IO_ICC_Type_Base {
             $macintosh_0filled = str_repeat("\0", 67);
             $writer->putData($macintosh_0filled);
         } else {
-            $macintosh = IO_ICC_String::fixAsciiZ($this->macintosh);
+            $macintosh = IO_ICC_String::trimNullTerminate($this->macintosh).
+                str_repeat("\0", max(1, (int) $this->macintoshNulCount));
             $macintoshCount = strlen($macintosh);
             $writer->putUI8($macintoshCount);
             $macintosh_0filled = str_pad($macintosh, 67, "\0");

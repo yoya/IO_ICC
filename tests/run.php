@@ -351,5 +351,18 @@ try {
     check('iccgbr curves and B2A', 'no exception', substr($out, 0, 200));
 }
 
+/*
+ * desc rebuild keeps the number of NULs after each string
+ */
+$desc = "desc\0\0\0\0".pack('N', 4)."abc\0"."\0\0\0\0".pack('N', 5).
+    mb_convert_encoding("abc\0\0", 'UCS-2BE', 'UTF-8')."\0\0".chr(5)."abc\0\0".str_repeat("\0", 62);
+$t = parseTag('desc', $desc);
+check('desc trailing NULs rebuild', bin2hex($desc), bin2hex($t->buildContent()));
+$d = file_get_contents("$root/test/JapanColor2011Coated.icc");
+$icc = new IO_ICC_Editor();
+$icc->parse($d);
+$icc->rebuild();
+check('desc rebuild (JapanColor)', md5($d), md5($icc->build()));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
