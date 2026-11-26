@@ -4,12 +4,12 @@ ICC プロファイルを解釈・編集する PHP ライブラリ (IO_Bit に�
 
 # 互換性
 
-IO_ISOBMFF と IO_HEIF が composer.json で `yoya/io_icc: ^1.1.3` を要求している。
+IO_ISOBMFF と IO_HEIF が composer.json で `yoya/io_icc: ^1.1.3 || ^2.0` を要求している。
 IO_ISOBMFF (IO/ISOBMFF.php の colr ボックスの処理) は `parse()`、`_tags`、タグの `signature`、`parseTagContent()`、desc/mluc の `tag->ascii` と `tag->records` を直接触っている。
 
 - 既存の挙動を変える修正は、依存側 (`../IO_ISOBMFF`, `../IO_HEIF`) での使われ方を grep で確かめてから行う。
 - 明らかなバグ修正以外で挙動が変わるもの (`_header` のキーや値の意味、build の出力、入力検査など) は、メジャーバージョンを上げて扱う。
-- メジャーバージョンを上げたら、IO_ISOBMFF と IO_HEIF の composer.json の制約 (`^1.1.3`) も直す必要がある。IO_ICC を先にリリースし、Packagist に出てから依存側を直す。
+- メジャーバージョンを上げたら、IO_ISOBMFF と IO_HEIF の composer.json の制約も直す必要がある。IO_ICC を先にリリースし、Packagist に出てから依存側を直す。
 
 # テスト
 
