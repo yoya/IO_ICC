@@ -29,9 +29,8 @@ foreach ($iccfiles as $iccfile) {
     }
 }
 
-$iccdata = file_get_contents($iccfile);
-
 foreach ($iccfiles as $iccfile) {
+    $iccdata = file_get_contents($iccfile);
     $icc = new IO_ICC();
     $icc->parse($iccdata);
     $icc->DumpHeader();

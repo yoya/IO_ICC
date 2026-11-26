@@ -156,5 +156,30 @@ ob_end_clean();
 restore_error_handler();
 check('dumpHeader/dumpTagTable without opts', array(), $errors);
 
+/*
+ * sample scripts (run as a separate process)
+ */
+function runSample($script, $args) {
+    global $root;
+    $cmd = escapeshellarg(PHP_BINARY).' -d '.escapeshellarg('include_path='.get_include_path()).
+        ' '.escapeshellarg("$root/sample/$script");
+    foreach ($args as $arg) {
+        $cmd .= ' '.escapeshellarg($arg);
+    }
+    return shell_exec($cmd.' 2>&1');
+}
+function tempICC($data) {
+    $file = tempnam(sys_get_temp_dir(), 'iccTest');
+    file_put_contents($file, $data);
+    register_shutdown_function('unlink', $file);
+    return $file;
+}
+$v43 = tempICC(icc(array(array('rTRC', $curv))));
+$v21 = tempICC(substr_replace(substr_replace(icc(array(array('rTRC', $curv))), "\x02\x10", 8, 2), 'prtr', 12, 4));
+check('iccversion per file', "$v43: 4.30\n$v21: 2.10\n", runSample('iccversion.php', array($v43, $v21)));
+$out = runSample('iccheader.php', array($v43, $v21));
+check('iccheader per file', array('mntr', 'prtr'),
+      preg_match_all('/DeviceClass: *(\w+)/', $out, $m) ? $m[1] : $out);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

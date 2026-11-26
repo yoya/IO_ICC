@@ -29,9 +29,8 @@ foreach ($iccfiles as $iccfile) {
     }
 }
 
-$iccdata = file_get_contents($iccfile);
-
 foreach ($iccfiles as $iccfile) {
+    $iccdata = file_get_contents($iccfile);
     $reader = new IO_ICC_Bit();
     $reader->input($iccdata);
     //
