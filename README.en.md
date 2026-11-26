@@ -141,7 +141,8 @@ wtpt: X:0.9642 Y:1.0000 Z:0.8249
   Tag types it cannot interpret (v5 dict, ...) are kept as raw bytes.
 - build stores tags with identical contents once and points the tag table entries to the same place (e.g. when rTRC, gTRC and bTRC are the same curve).
   Tags are aligned to 4 bytes and ProfileSize is rewritten.
-  For profiles of version 4 or later, the Profile ID (MD5) is computed and written.
+  The Profile ID (MD5) is read into `_header['ProfileID']` (16 bytes). build always computes it for version 4 or later,
+  and for version 2 only when the original had an ID (a v2 profile without one keeps 0).
 - The header's `CMMOptions` (Profile flags) and `DeviceAttribute` (Device attributes) hold the ICC-defined bits as booleans,
   the other ICC bits as `Reserved` (at their original bit positions) and the vendor bits as `Vendor`. build writes all bits back.
 - Numbers are held as PHP floats converted from the ICC fixed-point types. Large arrays (curves, CLUTs) are `IO_ICC_FixedArray` (SplFixedArray).
@@ -158,10 +159,9 @@ wtpt: X:0.9642 Y:1.0000 Z:0.8249
 
 # Known limitations
 
-- For version 2 profiles, build writes the Profile ID field as 0 (an ID in the original file is lost).
 - The version is shown as 2-digit BCD. v4.2.0 shows as `Major:4 Minor:20`.
-- `iccgbr.php` handles profiles made of rXYZ/gXYZ/bXYZ and rTRC/gTRC/bTRC, and 3-channel mAB/mBA (A2B0-2, B2A0-2) with A curves and a CLUT.
-  With any other LUT (v2 mft1/mft2, ...) it stops with an error.
+- `iccgbr.php` handles RGB profiles with rXYZ/gXYZ/bXYZ and rTRC/gTRC/bTRC, 3-channel mft1/mft2, and mAB/mBA (A2B0-2, B2A0-2) with A curves and a CLUT.
+  Anything else (non-RGB profiles, mAB/mBA without a CLUT, ...) stops with an error.
 
 # Test
 

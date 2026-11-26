@@ -141,7 +141,8 @@ wtpt: X:0.9642 Y:1.0000 Z:0.8249
   解釈できないタグ型 (v5 の dict など) はバイト列のまま残します。
 - build は、中身が同じタグを 1 つにまとめ、タグ表から同じ場所を指します (rTRC, gTRC, bTRC が同じカーブのときなど)。
   タグは 4 バイト境界に整列し、ProfileSize を書き直します。
-  バージョン 4 以上のプロファイルでは Profile ID (MD5) を計算して書きます。
+  Profile ID (MD5) は `_header['ProfileID']` (16 バイト) に読み、build ではバージョン 4 以上なら常に、
+  バージョン 2 なら元に ID があったときだけ計算して書きます (ID の無い v2 は 0 のまま)。
 - ヘッダの `CMMOptions` (Profile flags) と `DeviceAttribute` (Device attributes) は、ICC が定めるビットを真偽値で、
   それ以外の ICC 用のビットを `Reserved` (元のビット位置のまま)、ベンダー用のビットを `Vendor` に持ち、build で全ビットを書き戻します。
 - 数値は ICC の固定小数点を PHP の float にして持ちます。大きな配列 (カーブ、CLUT) は `IO_ICC_FixedArray` (SplFixedArray) です。
@@ -158,10 +159,9 @@ wtpt: X:0.9642 Y:1.0000 Z:0.8249
 
 # 既知の制限
 
-- バージョン 2 のプロファイルでは、build は Profile ID の欄を 0 で書きます (元のファイルに ID があっても消えます)。
 - バージョンは BCD 2 桁として表示します。v4.2.0 は `Major:4 Minor:20` になります。
-- `iccgbr.php` が扱うのは、rXYZ/gXYZ/bXYZ と rTRC/gTRC/bTRC によるプロファイルと、A カーブと CLUT を持つ 3 チャンネルの mAB/mBA (A2B0-2, B2A0-2) です。
-  v2 の mft1/mft2 などそれ以外の LUT があるとエラーで終了します。
+- `iccgbr.php` が扱うのは RGB のプロファイルで、rXYZ/gXYZ/bXYZ と rTRC/gTRC/bTRC、3 チャンネルの mft1/mft2 と、A カーブと CLUT を持つ mAB/mBA (A2B0-2, B2A0-2) です。
+  それ以外 (RGB 以外のプロファイル、CLUT の無い mAB/mBA など) はエラーで終了します。
 
 # Test
 
