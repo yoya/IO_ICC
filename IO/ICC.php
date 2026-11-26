@@ -193,7 +193,7 @@ class IO_ICC {
         $this->dumpTagTable($opts + ['indent' => 4]);
     }
     function dumpHeader($opts = array()) {
-        $hexdump = $opts['hexdump'];
+        $hexdump = ! empty($opts['hexdump']);
         $header = $this->_header;
         foreach ($header as $key => $value) {
             if ((is_array($value)) || ($value instanceof ArrayAccess)) {
@@ -240,7 +240,7 @@ class IO_ICC {
             echo "TagTable: (no entry)".PHP_EOL;
             return ;
         }
-        $hexdump = $opts['hexdump'];
+        $hexdump = ! empty($opts['hexdump']);
         $tagTableCount = count($tagTable);
         echo "TagTable: (Count:$tagTableCount)".PHP_EOL;
         foreach ($tagTable as $tagInfo) {

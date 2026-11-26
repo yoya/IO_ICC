@@ -139,5 +139,22 @@ foreach (array('A2B0' => 'mAB ', 'B2A0' => 'mBA ') as $sig => $type) {
     check(trim($type).' matrix offset aligned', 80, $offsets[2]);
 }
 
+/*
+ * dumpHeader / dumpTagTable without options
+ */
+$errors = array();
+set_error_handler(function ($no, $str) use (&$errors) {
+    $errors []= $str;
+    return true;
+});
+$icc = new IO_ICC_Editor();
+$icc->parse(icc(array(array('rTRC', $curv))));
+ob_start();
+$icc->dumpHeader();
+$icc->dumpTagTable();
+ob_end_clean();
+restore_error_handler();
+check('dumpHeader/dumpTagTable without opts', array(), $errors);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
