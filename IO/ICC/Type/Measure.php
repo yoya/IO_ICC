@@ -53,6 +53,7 @@ class IO_ICC_Type_Measure extends IO_ICC_Type_Base {
         $this->stdObserver = $reader->getUI32BE();
         $this->nCIEXYZ = $reader->getXYZNumber();
         $this->measureGeometry = $reader->getUI32BE();
+        $this->measureFlare = $reader->getUI32BE(); // u16Fixed16Number
         $this->stdIlluminant = $reader->getUI32BE();
     }
 
@@ -83,6 +84,7 @@ class IO_ICC_Type_Measure extends IO_ICC_Type_Base {
         $writer->putUI32BE($this->stdObserver);
         $writer->putXYZNumber($this->nCIEXYZ);
         $writer->putUI32BE($this->measureGeometry);
+        $writer->putUI32BE($this->measureFlare);
         $writer->putUI32BE($this->stdIlluminant);
         //
     	return $writer->output();
