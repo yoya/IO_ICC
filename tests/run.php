@@ -373,5 +373,60 @@ $icc->parse($d);
 $icc->rebuild();
 check('desc rebuild (JapanColor)', md5($d), md5($icc->build()));
 
+/*
+ * iccgbr with v2 LUTs (mft2): A2B rotates the input tables and grid axes,
+ * B2A rotates the output tables and CLUT outputs; the matrix is kept
+ */
+$mft2 = function () use ($matrix) {
+    $s = "mft2\0\0\0\0".chr(3).chr(3).chr(2)."\0".substr($matrix, 0, 36).pack('n2', 2, 2);
+    for ($c = 0; $c < 3; $c++) {
+        $s .= pack('n2', $c * 10, $c * 10 + 1); // input tables
+    }
+    for ($k = 0; $k < 2 * 2 * 2 * 3; $k++) {
+        $s .= pack('n', $k);
+    }
+    for ($c = 0; $c < 3; $c++) {
+        $s .= pack('n2', $c * 10, $c * 10 + 1); // output tables
+    }
+    return $s;
+};
+$out = runSample('iccgbr.php', array(tempICC(icc(array(array('A2B0', $mft2()), array('B2A0', $mft2()))))));
+try {
+    $icc = new IO_ICC_Editor();
+    $icc->parse($out);
+    $res = array();
+    foreach ($icc->_tags as $tag) {
+        $tag->parseTagContent();
+        $t = $tag->tag;
+        $in = $outT = array();
+        for ($c = 0; $c < 3; $c++) {
+            $in[] = $t->inputTables[$c][0];
+            $outT[] = $t->outputTables[$c][0];
+        }
+        $bad = 0;
+        for ($r = 0; $r < 2; $r++) {
+            for ($g = 0; $g < 2; $g++) {
+                for ($b = 0; $b < 2; $b++) {
+                    $old = (($r * 2 + $g) * 2 + $b) * 3;
+                    if ($tag->signature === 'A2B0') {
+                        $v = $t->clutTable[(($g * 2 + $b) * 2 + $r) * 3];
+                        $bad += ($v !== $old) ? 1 : 0;
+                    } else {
+                        $new = $old;
+                        $bad += ($t->clutTable[$new] !== $old + 1) ? 1 : 0;
+                    }
+                }
+            }
+        }
+        $res[$tag->signature] = array($in, $outT, $bad, $t->matrix[1]);
+    }
+    check('iccgbr mft2', array('A2B0' => array(array(10, 20, 0), array(0, 10, 20), 0, 0),
+                               'B2A0' => array(array(0, 10, 20), array(10, 20, 0), 0, 0)), $res);
+} catch (Exception $e) {
+    check('iccgbr mft2', 'no exception', substr($out, 0, 200));
+}
+$cmyk = substr_replace(icc(array(array('rTRC', $curv))), 'CMYK', 16, 4);
+check('iccgbr CMYK', "not an RGB profile (ColorSpace:CMYK)\n", runSample('iccgbr.php', array(tempICC($cmyk))));
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);

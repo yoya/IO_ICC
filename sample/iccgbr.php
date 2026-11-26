@@ -24,6 +24,11 @@ $icc = new IO_ICC_Editor();
 
 $icc->parse($iccdata);
 
+if ($icc->_header['ColorSpace'] !== 'RGB ') {
+    fwrite(STDERR, "not an RGB profile (ColorSpace:{$icc->_header['ColorSpace']})\n");
+    exit(1);
+}
+
 // The GBR profile reads channel 1,2,3 as the original G,B,R:
 // (new rXYZ, gXYZ, bXYZ) = (old gXYZ, bXYZ, rXYZ), the TRCs likewise.
 
@@ -83,11 +88,32 @@ foreach ($icc->_tags as $idx => &$tag) {
     case 'B2A2':
         $tag->parseTagContent();
         $lut = $tag->tag;
+        if (($lut->type === 'mft1') || ($lut->type === 'mft2')) {
+            // lut8/lut16: input tables -> CLUT (cubic grid) -> output tables.
+            // The matrix is applied only to XYZ input, i.e. the PCS side
+            // of B2A, so it is kept as is.
+            if (($lut->nInput !== 3) || ($lut->nOutput !== 3)) {
+                fwrite(STDERR, "$sig: unsupported ({$lut->nInput} to {$lut->nOutput} channels)\n");
+                exit(1);
+            }
+            $g = $lut->nCLUTGridPoints;
+            if ($sig[0] === 'A') { // A2B: device RGB is the input side
+                $t = $lut->inputTables;
+                $lut->inputTables = [$t[1], $t[2], $t[0]];
+                list($dummy, $lut->clutTable) =
+                    convertCLUT2GBR_A2B([$g, $g, $g], $lut->clutTable);
+            } else {               // B2A: device RGB is the output side
+                $t = $lut->outputTables;
+                $lut->outputTables = [$t[1], $t[2], $t[0]];
+                $lut->clutTable = convertCLUT2GBR_B2A([$g, $g, $g], $lut->clutTable);
+            }
+            break;
+        }
         // device side: A curves and CLUT (mAB: A->CLUT->M->Matrix->B, mBA: reverse)
         if ((($lut->type !== 'mAB ') && ($lut->type !== 'mBA ')) ||
             ($lut->nInput !== 3) || ($lut->nOutput !== 3) ||
             is_null($lut->clut) || is_null($lut->aCurves)) {
-            fwrite(STDERR, "$sig: unsupported (type:{$tag->type}, need mAB/mBA 3ch with A curves and CLUT)\n");
+            fwrite(STDERR, "$sig: unsupported (type:{$tag->type}, need mft1/mft2, or mAB/mBA with A curves and CLUT, 3 channels)\n");
             exit(1);
         }
         $a = $lut->aCurves;
