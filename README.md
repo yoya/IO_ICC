@@ -186,3 +186,9 @@ IO_Bit は `vendor/` (composer install した場合) か include_path から読�
     - http://japancolor.jp/icc.html
   - XYZ
     - http://www.color.org/XYZprofiles.xalter
+
+## IO_Bit の利用箇所
+
+`IO_ICC_Bit` は `IO_Bit` を継承します。プロファイル内の 32 ビット値やオフセットの読み書きにはビッグエンディアンのメソッドを使います。
+
+[IO_Bit Wiki](https://github.com/yoya/IO_Bit/wiki)
