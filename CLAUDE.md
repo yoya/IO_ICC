@@ -39,7 +39,8 @@ IO_ISOBMFF (IO/ISOBMFF.php の colr ボックスの処理) は `parse()`、`_tag
    - 過去のリリースがある (最新は `v1.1.3` "delete tag function")。
    - タイトルは変更の要約にし、利用者が読んで分かる言葉で書く。
 7. Wiki
-   - Wiki はまだ作られていない (`git@github.com:yoya/IO_ICC.wiki.git` が無い)。作るには GitHub の Web 画面で最初のページを作る必要がある。それまでこのステップは無い。
+   - Wiki は別リポジトリ (`git@github.com:yoya/IO_ICC.wiki.git`)。Home (紹介・インストール・ページ一覧)、Design (設計・実装詳細・既知の制限)、Usage (コード例)、API (メソッド一覧)、Samples (sample/ のスクリプトの使い方) のページがある。
+   - 今回の変更で古くなった記述が無いか見て、あれば直す (既知の制限に書いた不具合を直したら、その行も消す)。README と食い違わないようにする。
 8. 反映の確認
    - リリースが最新版として見えていること、Packagist (`yoya/io_icc`) に新しい版が反映されていることを確かめる。
 
