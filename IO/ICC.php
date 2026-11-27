@@ -1,6 +1,6 @@
 <?php
 /*
-  IO_ICC class -- v2.0.0
+  IO_ICC class -- v2.1.0
   (c) 2015/08/02- yoya@awm.jp
 */
 
