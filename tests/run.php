@@ -428,5 +428,466 @@ try {
 $cmyk = substr_replace(icc(array(array('rTRC', $curv))), 'CMYK', 16, 4);
 check('iccgbr CMYK', "not an RGB profile (ColorSpace:CMYK)\n", runSample('iccgbr.php', array(tempICC($cmyk))));
 
+/*
+ * synthetic test data (tests/data, made by tests/data/make.php)
+ */
+function checkThrows($name, $pattern, $func) {
+    try {
+        $func();
+        check($name, "exception matching $pattern", 'no exception');
+    } catch (Exception $e) {
+        check($name, 1, preg_match($pattern, get_class($e).': '.$e->getMessage()));
+    }
+}
+
+// runs php with the same include_path; [exit status, stdout, stderr] (exit -1 on timeout)
+function runPHP($args, $timeout = 60) {
+    global $root;
+    $cmd = array_merge([PHP_BINARY, '-d', 'include_path='.get_include_path(), '-d', 'error_reporting=E_ALL',
+                        '-d', 'display_errors=stderr', '-d', 'log_errors=0'], $args);
+    $proc = proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, $root);
+    stream_set_blocking($pipes[1], false);
+    stream_set_blocking($pipes[2], false);
+    $out = $err = '';
+    $start = microtime(true);
+    while (true) {
+        $out .= stream_get_contents($pipes[1]);
+        $err .= stream_get_contents($pipes[2]);
+        $status = proc_get_status($proc);
+        if (! $status['running']) {
+            $out .= stream_get_contents($pipes[1]);
+            $err .= stream_get_contents($pipes[2]);
+            proc_close($proc);
+            return [$status['exitcode'], $out, $err];
+        }
+        if (microtime(true) - $start > $timeout) {
+            proc_terminate($proc, 9);
+            proc_close($proc);
+            return [-1, $out, $err."timeout"];
+        }
+        usleep(10000);
+    }
+}
+
+$dataDir = dirname(__FILE__).'/data';
+require_once $dataDir.'/make.php';
+$madeFiles = makeFiles();
+foreach ($madeFiles as $name => $bytes) {
+    check("data $name is made by make.php", md5($bytes), md5_file("$dataDir/$name"));
+}
+$names = array_keys($madeFiles);
+sort($names);
+check("data files", $names, array_values(array_diff(array_map('basename', glob("$dataDir/*")), ['make.php'])));
+$validFiles = ['v2-rgb.icc', 'v4-rgb.icc', 'v4-gray.icc'];
+
+function fx($v) { // s15Fixed16Number as parsed
+    return ((int) round($v * 65536)) / 65536;
+}
+function fxList($list) {
+    return array_map('fx', $list);
+}
+function xyzValue($x, $y, $z) {
+    return ['X' => fx($x), 'Y' => fx($y), 'Z' => fx($z)];
+}
+function parseICCFile($file) {
+    $icc = new IO_ICC_Editor();
+    $icc->parse(file_get_contents($file));
+    return $icc;
+}
+function tagBySig($icc, $sig) {
+    foreach ($icc->_tags as $tag) {
+        if ($tag->signature === $sig) {
+            $tag->parseTagContent();
+            return $tag;
+        }
+    }
+    return null;
+}
+// curv / para element: [type, values] or [type, functionType, params]
+function curveValue($c) {
+    return ($c->type === 'curv') ? ['curv', $c->CurveValues->toArray()] : [$c->type, $c->functionType, $c->params->toArray()];
+}
+function curveValues($list) {
+    return ($list === null) ? null : array_map('curveValue', $list);
+}
+
+// header
+$expectHeader = [
+    'v2-rgb.icc' => ['ProfileSize' => 2508, 'CMMType' => 'ioic', 'ProfileVersion' => ['Major' => 2, 'Minor' => 10],
+                     'ProfileDeviceClass' => 'mntr', 'ColorSpace' => 'RGB ', 'ConnectionSpace' => 'XYZ ',
+                     'DataTimeCreated' => ['Year' => 2026, 'Month' => 11, 'Day' => 28, 'Hours' => 1, 'Minutes' => 2, 'Seconds' => 3],
+                     'acspSignature' => 'acsp', 'PrimaryPlatform' => 'APPL',
+                     'CMMOptions' => ['EmbedProfile' => false, 'Independently' => false, 'Reserved' => 0, 'Vendor' => 0],
+                     'DeviceManufacturer' => 0x74657374, 'DeviceModel' => 1,
+                     'DeviceAttribute' => ['ReflectiveOrTransparency' => false, 'GlossyOnMatte' => false,
+                                           'PositiveOrNegative' => false, 'ColorOrBlackAndWhite' => false,
+                                           'Reserved' => 0, 'Vendor' => 0],
+                     'RenderingIntent' => 0, 'XYZvalueD50' => xyzValue(0.9642, 1.0, 0.8249),
+                     'CreatorID' => 0x696F6963, 'ProfileID' => str_repeat("\0", 16)],
+    'v4-rgb.icc' => ['ProfileSize' => 1360, 'CMMType' => 'ioic', 'ProfileVersion' => ['Major' => 4, 'Minor' => 30],
+                     'ProfileDeviceClass' => 'mntr', 'ColorSpace' => 'RGB ', 'ConnectionSpace' => 'XYZ ',
+                     'DataTimeCreated' => ['Year' => 2026, 'Month' => 1, 'Day' => 2, 'Hours' => 23, 'Minutes' => 59, 'Seconds' => 58],
+                     'acspSignature' => 'acsp', 'PrimaryPlatform' => 'MSFT',
+                     'CMMOptions' => ['EmbedProfile' => true, 'Independently' => false, 'Reserved' => 4, 'Vendor' => 0xBEEF],
+                     'DeviceManufacturer' => 0x74657374, 'DeviceModel' => 0x12345678,
+                     'DeviceAttribute' => ['ReflectiveOrTransparency' => false, 'GlossyOnMatte' => true,
+                                           'PositiveOrNegative' => false, 'ColorOrBlackAndWhite' => true,
+                                           'Reserved' => 0x100, 'Vendor' => 0xCAFEF00D],
+                     'RenderingIntent' => 1, 'XYZvalueD50' => xyzValue(0.9642, 1.0, 0.8249),
+                     'CreatorID' => 0x696F6963, 'ProfileID' => hex2bin(profileMD5($madeFiles['v4-rgb.icc']))],
+    'v4-gray.icc' => ['ProfileSize' => 248, 'CMMType' => "\0\0\0\0", 'ProfileVersion' => ['Major' => 4, 'Minor' => 20],
+                      'ProfileDeviceClass' => 'scnr', 'ColorSpace' => 'GRAY', 'ConnectionSpace' => 'Lab ',
+                      'DataTimeCreated' => ['Year' => 2000, 'Month' => 12, 'Day' => 31, 'Hours' => 0, 'Minutes' => 0, 'Seconds' => 0],
+                      'acspSignature' => 'acsp', 'PrimaryPlatform' => "\0\0\0\0",
+                      'CMMOptions' => ['EmbedProfile' => false, 'Independently' => true, 'Reserved' => 0, 'Vendor' => 0],
+                      'DeviceManufacturer' => 0, 'DeviceModel' => 0,
+                      'DeviceAttribute' => ['ReflectiveOrTransparency' => true, 'GlossyOnMatte' => false,
+                                            'PositiveOrNegative' => false, 'ColorOrBlackAndWhite' => false,
+                                            'Reserved' => 0, 'Vendor' => 0],
+                      'RenderingIntent' => 3, 'XYZvalueD50' => xyzValue(0.9642, 1.0, 0.8249),
+                      'CreatorID' => 0, 'ProfileID' => hex2bin(profileMD5($madeFiles['v4-gray.icc']))]];
+foreach ($validFiles as $file) {
+    $icc = parseICCFile("$dataDir/$file");
+    check("$file header", $expectHeader[$file], $icc->_header);
+    check("$file ProfileSize is the file size", filesize("$dataDir/$file"), $icc->_header['ProfileSize']);
+}
+
+// tag table
+$icc = parseICCFile("$dataDir/v2-rgb.icc");
+check("v2-rgb.icc tag table", ['desc', 'cprt', 'wtpt', 'bkpt', 'rXYZ', 'gXYZ', 'bXYZ', 'rTRC', 'gTRC', 'bTRC',
+                               'tech', 'meas', 'view', 'chad', 'A2B0', 'B2A0', 'zzzz'],
+      array_column($icc->_tagTable, 'Signature'));
+check("v2-rgb.icc first tag after the table", 128 + 4 + 12 * 17, $icc->_tagTable[0]['Offset']);
+check("v2-rgb.icc rTRC and gTRC share the data", [$icc->_tagTable[7]['Offset'], 14],
+      [$icc->_tagTable[8]['Offset'], $icc->_tagTable[8]['Size']]);
+$aligned = true;
+foreach ($icc->_tagTable as $t) {
+    $aligned = $aligned && ($t['Offset'] % 4 === 0);
+}
+check("v2-rgb.icc tags 4-byte aligned", true, $aligned);
+
+// v2 tag contents
+$t = tagBySig($icc, 'desc')->tag;
+check("v2 desc", ["v2 test", "enUS", "v2 テスト", 0, "mac"], [$t->ascii, $t->unicodeLanguage, $t->unicode, $t->scriptCode, $t->macintosh]);
+check("v2 cprt", "No copyright, synthetic data", tagBySig($icc, 'cprt')->tag->text);
+foreach (['wtpt' => [0.9642, 1.0, 0.8249], 'bkpt' => [0, 0, 0], 'rXYZ' => [0.4361, 0.2225, 0.0139],
+          'gXYZ' => [0.3851, 0.7169, 0.0971], 'bXYZ' => [0.1431, 0.0606, 0.7141]] as $sig => $v) {
+    check("v2 $sig", xyzValue($v[0], $v[1], $v[2]), tagBySig($icc, $sig)->tag->xyz);
+}
+check("v2 rTRC gamma", [563 / 256], tagBySig($icc, 'rTRC')->tag->CurveValues->toArray());
+check("v2 gTRC gamma", [563 / 256], tagBySig($icc, 'gTRC')->tag->CurveValues->toArray());
+check("v2 bTRC table", [0, 1000, 30000, 65535], tagBySig($icc, 'bTRC')->tag->CurveValues->toArray());
+check("v2 tech", 'vidm', tagBySig($icc, 'tech')->tag->signature);
+$t = tagBySig($icc, 'meas')->tag;
+check("v2 meas", [1, xyzValue(0, 0, 0), 1, 0x10000, 2],
+      [$t->stdObserver, $t->nCIEXYZ, $t->measureGeometry, $t->measureFlare, $t->stdIlluminant]);
+$t = tagBySig($icc, 'view')->tag;
+check("v2 view", [xyzValue(19.6445, 20.3718, 16.8089), xyzValue(3.9289, 4.0744, 3.3618), 1],
+      [$t->xyzIlluminant, $t->xyzSurround, $t->illuminantType]);
+$chad = fxList([1.0479, 0.0229, -0.0502, 0.0296, 0.9904, -0.0171, -0.0092, 0.0151, 0.7519]);
+check("v2 chad", $chad, tagBySig($icc, 'chad')->tag->values);
+$t = tagBySig($icc, 'A2B0')->tag;
+$v = lutValues(3 * 256, 0xff, 1);
+check("v2 A2B0 lut8", [3, 3, 2, fxList([1, 0, 0, 0, 1, 0, 0, 0, 1]), 256, 256,
+                       [array_slice($v, 0, 256), array_slice($v, 256, 256), array_slice($v, 512, 256)],
+                       lutValues(8 * 3, 0xff, 2), array_chunk(lutValues(3 * 256, 0xff, 3), 256)],
+      [$t->nInput, $t->nOutput, $t->nCLUTGridPoints, $t->matrix, $t->nInputTableEntries, $t->nOutputTableEntries,
+       array_map(function ($a) { return $a->toArray(); }, $t->inputTables), $t->clutTable->toArray(),
+       array_map(function ($a) { return $a->toArray(); }, $t->outputTables)]);
+$t = tagBySig($icc, 'B2A0')->tag;
+check("v2 B2A0 lut16", [3, 3, 2, fxList([1.5, 0, 0, 0, 1, 0, 0, 0, -0.5]), 2, 3,
+                        array_chunk(lutValues(3 * 2, 0xffff, 4), 2), lutValues(8 * 3, 0xffff, 5),
+                        array_chunk(lutValues(3 * 3, 0xffff, 6), 3)],
+      [$t->nInput, $t->nOutput, $t->nCLUTGridPoints, $t->matrix, $t->nInputTableEntries, $t->nOutputTableEntries,
+       array_map(function ($a) { return $a->toArray(); }, $t->inputTables), $t->clutTable->toArray(),
+       array_map(function ($a) { return $a->toArray(); }, $t->outputTables)]);
+$tag = $icc->_tags[16];
+check("v2 unknown type is kept as bytes", ['zzzz', 'abcd', false, "abcd\0\0\0\0\1\2\3\4\5"],
+      [$tag->signature, $tag->type, $tag->parseTagContent(), $tag->content]);
+checkThrows("v2 unknown type, restrict", '/^IO_ICC_Exception: klass === false \(type:abcd\)$/', function () use ($tag) {
+    $tag->parseTagContent(['restrict' => true]);
+});
+
+// v4 tag contents
+$icc = parseICCFile("$dataDir/v4-rgb.icc");
+$mluc = function ($sig) use ($icc) {
+    return array_map(function ($r) { return [$r['LangCode'], $r['CountryCode'], $r['String']]; }, tagBySig($icc, $sig)->tag->records);
+};
+check("v4 desc", [['en', 'US', "v4 test"], ['ja', 'JP', "テスト"]], $mluc('desc'));
+check("v4 cprt", [['en', 'US', "No copyright"]], $mluc('cprt'));
+check("v4 para 0", ['para', 0, fxList([2.4])], curveValue(tagBySig($icc, 'rTRC')->tag));
+check("v4 para 3", ['para', 3, fxList([2.4, 1 / 1.055, 0.055 / 1.055, 1 / 12.92, 0.04045])], curveValue(tagBySig($icc, 'gTRC')->tag));
+check("v4 para 4", ['para', 4, fxList([2.2, 0.9, 0.1, 0.5, 0.2, -0.01, 0.02])], curveValue(tagBySig($icc, 'bTRC')->tag));
+check("v4 chad", $chad, tagBySig($icc, 'chad')->tag->values);
+$t = tagBySig($icc, 'A2B0')->tag;
+check("v4 A2B0 mAB", ['mAB ', 3, 3,
+                      [['curv', []], ['para', 1, fxList([1.8, 1.1, -0.1])], ['para', 2, fxList([2.0, 1.0, 0.0, 0.05])]],
+                      fxList([1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, -0.2, 0.3]),
+                      [['para', 0, [1]], ['para', 0, [1.5]], ['para', 0, [0.5]]],
+                      [[2, 3, 2], 2, lutValues(36, 0xffff, 7)],
+                      [['curv', [1]], ['curv', [0, 65535]], ['curv', []]]],
+      [$t->type, $t->nInput, $t->nOutput, curveValues($t->bCurves), $t->matrix, curveValues($t->mCurves),
+       [$t->clut['Grid'], $t->clut['Precision'], $t->clut['Data']->toArray()], curveValues($t->aCurves)]);
+$t = tagBySig($icc, 'B2A0')->tag;
+check("v4 B2A0 mBA", ['mBA ', 3, 3, array_fill(0, 3, ['para', 0, [1]]), fxList([2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0]),
+                      array_fill(0, 3, ['curv', []]), [[2, 2, 2], 1, lutValues(24, 0xff, 8)],
+                      [['curv', [0, 32768, 65535]], ['para', 3, fxList([2.4, 1 / 1.055, 0.055 / 1.055, 1 / 12.92, 0.04045])],
+                       ['curv', [563 / 256]]]],
+      [$t->type, $t->nInput, $t->nOutput, curveValues($t->bCurves), $t->matrix, curveValues($t->mCurves),
+       [$t->clut['Grid'], $t->clut['Precision'], $t->clut['Data']->toArray()], curveValues($t->aCurves)]);
+$t = tagBySig($icc, 'A2B1')->tag;
+check("v4 A2B1 mAB B curves only", [array_fill(0, 3, ['curv', []]), null, null, null, null],
+      [curveValues($t->bCurves), $t->matrix, $t->mCurves, $t->clut, $t->aCurves]);
+$t = tagBySig($icc, 'meas')->tag;
+check("v4 meas", [2, xyzValue(0.1, 0.2, 0.3), 2, 0, 8],
+      [$t->stdObserver, $t->nCIEXYZ, $t->measureGeometry, $t->measureFlare, $t->stdIlluminant]);
+$tag = $icc->_tags[14];
+check("v4 dict is kept as bytes", ['meta', 'dict', false], [$tag->signature, $tag->type, $tag->parseTagContent()]);
+$icc = parseICCFile("$dataDir/v4-gray.icc");
+check("v4-gray kTRC", [0, 16384, 32768, 49152, 65535], tagBySig($icc, 'kTRC')->tag->CurveValues->toArray());
+
+// build(): byte-identical, also after rebuild() (every known tag made again)
+foreach ($validFiles as $file) {
+    $data = file_get_contents("$dataDir/$file");
+    $icc = new IO_ICC();
+    $icc->parse($data);
+    check("$file build identical", md5($data), md5($icc->build()));
+    $icc = parseICCFile("$dataDir/$file");
+    $icc->rebuild();
+    check("$file rebuild identical", md5($data), md5($icc->build()));
+}
+// Profile ID of a v2 profile that has one is kept
+$data = file_get_contents("$dataDir/v2-rgb.icc");
+$data = substr_replace($data, hex2bin(profileMD5($data)), 84, 16);
+$icc = new IO_ICC();
+$icc->parse($data);
+check("v2 with Profile ID build identical", md5($data), md5($icc->build()));
+
+// edit
+$icc = parseICCFile("$dataDir/v2-rgb.icc");
+$icc->deleteTag('zzzz');
+$icc->deleteTag('bkpt');
+tagBySig($icc, 'wtpt')->tag->xyz = xyzValue(0.95, 1.0, 1.09);
+tagBySig($icc, 'wtpt')->content = null;
+tagBySig($icc, 'bTRC')->tag->CurveValues = new IO_ICC_FixedArray(1);
+tagBySig($icc, 'bTRC')->tag->CurveValues[0] = 563 / 256;
+tagBySig($icc, 'bTRC')->content = null;
+tagBySig($icc, 'desc')->tag->ascii = "edited";
+tagBySig($icc, 'desc')->content = null;
+$icc->_header['RenderingIntent'] = 2;
+$icc->_header['CMMOptions']['EmbedProfile'] = true;
+$out = $icc->build();
+$icc2 = new IO_ICC_Editor();
+$icc2->parse($out);
+check("edit tags", ['desc', 'cprt', 'wtpt', 'rXYZ', 'gXYZ', 'bXYZ', 'rTRC', 'gTRC', 'bTRC', 'tech', 'meas', 'view', 'chad', 'A2B0', 'B2A0'],
+      array_column($icc2->_tagTable, 'Signature'));
+check("edit values", [xyzValue(0.95, 1.0, 1.09), "edited", 2, true, 1, strlen($out)],
+      [tagBySig($icc2, 'wtpt')->tag->xyz, tagBySig($icc2, 'desc')->tag->ascii, $icc2->_header['RenderingIntent'],
+       $icc2->_header['CMMOptions']['EmbedProfile'], unpack('N', substr($out, 44, 4))[1], $icc2->_header['ProfileSize']]);
+check("edit: bTRC now shares rTRC's data", [$icc2->_tagTable[6]['Offset'], $icc2->_tagTable[6]['Offset']],
+      [$icc2->_tagTable[7]['Offset'], $icc2->_tagTable[8]['Offset']]);
+check("edit: v2 without ID stays without", str_repeat("\0", 16), substr($out, 84, 16));
+$icc = parseICCFile("$dataDir/v4-rgb.icc");
+$icc->_header['DeviceAttribute']['Vendor'] = 1;
+$out = $icc->build();
+check("edit v4: Profile ID made again", [profileMD5($out), "\0\0\0\1"], [bin2hex(substr($out, 84, 16)), substr($out, 56, 4)]);
+
+// dump(): no warnings / notices
+$warnings = [];
+set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$warnings) {
+    $warnings []= "$errstr ($errfile:$errline)";
+    return true;
+});
+$dumps = [];
+foreach ($validFiles as $file) {
+    foreach ([[], ['hexdump' => true]] as $opts) {
+        ob_start();
+        try {
+            parseICCFile("$dataDir/$file")->dump($opts);
+            $err = null;
+        } catch (Throwable $e) {
+            $err = get_class($e).': '.$e->getMessage();
+        }
+        $dumps[$file][json_encode($opts)] = $out = ob_get_clean();
+        check("$file dump ".json_encode($opts), [null, 0], [$err, strpos($out, "Header:\n    ProfileSize:")]);
+    }
+}
+restore_error_handler();
+check("dump no warnings", [], $warnings);
+foreach (['v2-rgb.icc' => ["    ProfileVersion: Major:2 Minor:10\n", "    RenderingIntent:0(Perceptual)\n",
+                           "    ProfileID:00000000000000000000000000000000\n", "TagTable: (Count:17)\n",
+                           "\tASCII: v2 test\n", "\tUnicodeLanguage: enUS\n", "\tUnicode: v2 テスト\n", "\tMacintosh: mac\n",
+                           "\tTEXT: No copyright, synthetic data\n", "        XYZ: X:0.4361 Y:0.2225 Z:0.0139\n",
+                           "        Signature: 76 69 64 6D (vidm)\n",
+                           "        StdObserver:1 CIE 1931 standard colormetric observer \n", "        stdIlluminant:2 D65\n",
+                           "        illuminantType:1 D50\n", "\tValues:1.0479,0.0229,-0.0502,0.0296,0.9904,-0.0171,-0.0092,0.0151,0.7519\n",
+                           "nInputTableEntries:2 nOutputTableEntries:3\n",
+                           "Signature:zzzz (Offset:", "    Type:abcd\n"],
+          'v4-rgb.icc' => ["    ProfileVersion: Major:4 Minor:30\n",
+                           "    CMMOptions: EmbedProfile:true Independently:false Reserved:4 Vendor:48879\n",
+                           "    DeviceAttribute: ReflectiveOrTransparency:false GlossyOnMatte:true PositiveOrNegative:false ColorOrBlackAndWhite:true Reserved:256 Vendor:3405705229\n",
+                           "    RenderingIntent:1(Relative Colorimetric)\n",
+                           "    ProfileID:".profileMD5($madeFiles['v4-rgb.icc'])."\n",
+                           "\tCode:en_US String:v4 test\n", "\tCode:ja_JP String:テスト\n",
+                           "FunctionType:4\n", "Params: 2.2000 0.9000 0.1000 0.5000 0.2000 -0.0100 0.0200\n",
+                           "Grids: 2 3 2\n", "Precision:1\n", "    Type:dict\n", "        stdIlluminant:8 F8\n"],
+          'v4-gray.icc' => ["    ConnectionSpace:Lab \n", "    RenderingIntent:3(Absolute Colorimetric)\n",
+                            "[0] 0 16384 32768 49152 65535\n"]] as $file => $lines) {
+    foreach ($lines as $line) {
+        check("$file dump has ".json_encode($line), 1, substr_count($dumps[$file]['[]'], $line));
+    }
+}
+$icc = parseICCFile("$dataDir/v2-rgb.icc");
+check("v2-rgb.icc dump: rTRC and gTRC", [1, 1, 2, 2],
+      [substr_count($dumps['v2-rgb.icc']['[]'], "    Signature:rTRC Offset:{$icc->_tagTable[7]['Offset']} Size:14\n"),
+       substr_count($dumps['v2-rgb.icc']['[]'], "    Signature:gTRC Offset:{$icc->_tagTable[7]['Offset']} Size:14\n"),
+       substr_count($dumps['v2-rgb.icc']['[]'], "CurveValues: 2.1992 (gamma value)\n"),
+       substr_count($dumps['v2-rgb.icc']['[]'], "nInput:3 nOutput:3 nCLUTGridPoints:2\n")]);
+check("v4-rgb.icc dump (none)", 4, substr_count($dumps['v4-rgb.icc']['[]'], "(none)\n"));
+check("v2-rgb.icc hexdump", 1, preg_match('/^0x00000000 +00 00 09 cc 69 6f 69 63 +02 10 00 00 /m', $dumps['v2-rgb.icc']['{"hexdump":true}']));
+
+// broken input
+checkThrows("truncated-header.icc", '/^Exception: header is too short\(100\)$/', function () use ($dataDir) {
+    parseICCFile("$dataDir/truncated-header.icc");
+});
+checkThrows("truncated-tag.icc", '/^IO_Bit_Exception: getData: 244 < 224 \+ 22$/', function () use ($dataDir) {
+    parseICCFile("$dataDir/truncated-tag.icc");
+});
+$data = file_get_contents("$dataDir/v4-gray.icc");
+checkThrows("empty", '/header is too short\(0\)/', function () { (new IO_ICC())->parse(''); });
+checkThrows("header only", '/IO_Bit_Exception/', function () use ($data) { (new IO_ICC())->parse(substr($data, 0, 128)); });
+checkThrows("tag count beyond the end", '/IO_Bit_Exception/', function () use ($data) {
+    (new IO_ICC())->parse(substr_replace($data, pack('N', 1000), 128, 4));
+});
+checkThrows("tag offset beyond the end", '/IO_Bit_Exception/', function () use ($data) {
+    (new IO_ICC())->parse(substr_replace($data, pack('N', 10000), 128 + 4 + 4, 4));
+});
+$h = ['cmm' => "ioic", 'major' => 4, 'minor' => 0x30, 'class' => 'mntr', 'space' => 'RGB ', 'pcs' => 'XYZ ',
+      'date' => [2026, 1, 2, 3, 4, 5], 'platform' => 'APPL', 'flags' => 0, 'manufacturer' => 0, 'model' => 0,
+      'attrVendor' => 0, 'attr' => 0, 'intent' => 0, 'creator' => 'ioic', 'id' => true];
+foreach (['curv short' => ["curv\0\0\0\0".pack('N', 10)."\0\0", '/^IO_Bit_Exception/'],
+          'XYZ short' => ["XYZ \0\0\0\0ab", '/^IO_Bit_Exception/'],
+          'sig short' => ["sig \0\0\0\0ab", '/^IO_Bit_Exception/'],
+          'desc short' => ["desc\0\0\0\0".pack('N', 100)."abc", '/^IO_Bit_Exception/'],
+          'mluc string beyond' => ["mluc\0\0\0\0".pack('NN', 1, 12)."enUS".pack('NN', 4, 1000), '/^IO_Bit_Exception/'],
+          'mft1 short' => ["mft1\0\0\0\0".pack('CCCC', 3, 3, 2, 0), '/^IO_Bit_Exception/'],
+          'mft2 short' => ["mft2\0\0\0\0".pack('CCCC', 15, 15, 255, 0).str_repeat("\0", 36).pack('nn', 2, 2), '/^IO_Bit_Exception/'],
+          'mAB CLUT precision 3' => [lutABType('mAB ', 1, 1, null, null, null, [[2], 3, [1, 2]], null),
+                                     '/^IO_ICC_Exception: CLUT precision\(3\) !== 1,2$/'],
+          'mAB B curve beyond' => ["mAB \0\0\0\0".pack('CCn', 3, 3, 0).pack('N5', 1000, 0, 0, 0, 0), '/^IO_ICC_Exception: bCurve === false$/'],
+          'mBA B curve of unknown type' => [lutABType('mBA ', 1, 1, ["abcd\0\0\0\0"], null, null, null, null),
+                                            '/^IO_ICC_Exception: bCurve === false$/']] as $label => $case) {
+    $icc = new IO_ICC();
+    $icc->parse(makeICC($h, [['test', $case[0]]]));
+    $tag = $icc->_tags[0];
+    checkThrows("broken tag: $label", $case[1], function () use ($tag) { $tag->parseTagContent(); });
+}
+
+// every truncation of the files: an exception or a result, no warnings, no hang
+$code = <<<'CODE'
+require_once 'IO/ICC/Editor.php';
+set_error_handler(function ($no, $str, $file, $line) { fwrite(STDERR, "WARNING: $str ($file:$line)\n"); return true; });
+$data = file_get_contents($argv[1]);
+$lastThrow = -1;
+for ($len = 0 ; $len < strlen($data) ; $len++) {
+    $icc = new IO_ICC_Editor();
+    try {
+        $icc->parse(substr($data, 0, $len));
+    } catch (Exception $e) {
+        $lastThrow = $len;
+        continue;
+    }
+    ob_start();
+    $icc->dump(['hexdump' => true]);
+    ob_end_clean();
+    $icc->rebuild();
+    $icc->build();
+}
+echo "lastThrow:$lastThrow\n";
+CODE;
+foreach ($validFiles as $file) {
+    list($status, $out, $err) = runPHP(['-r', $code, "$dataDir/$file"]);
+    // tag data is read at parse(), so every cut before the end of the last tag throws
+    $end = 0;
+    foreach (parseICCFile("$dataDir/$file")->_tagTable as $t) {
+        $end = max($end, $t['Offset'] + $t['Size']);
+    }
+    check("$file truncations", [0, '', 0, 'lastThrow:'.($end - 1)."\n"],
+          [$status, $err, substr_count($out, "WARNING"), $out]);
+}
+
+// sample/*.php
+$v2 = "$dataDir/v2-rgb.icc";
+$v4 = "$dataDir/v4-rgb.icc";
+$gray = "$dataDir/v4-gray.icc";
+foreach ($validFiles as $file) {
+    foreach ([[], ['-h'], ['-d']] as $opts) {
+        list($status, $out, $err) = runPHP(array_merge(['sample/iccdump.php', '-f', "$dataDir/$file"], $opts));
+        check("iccdump $file ".implode(' ', $opts), [0, ''], [$status, $err]);
+    }
+    check("iccdump $file output", $dumps[$file]['[]'], $out);
+    list($status, $out, $err) = runPHP(['sample/icccopy.php', "$dataDir/$file"]);
+    check("icccopy $file", [0, '', md5_file("$dataDir/$file")], [$status, $err, md5($out)]);
+    list($status, $out, $err) = runPHP(['sample/iccrebuild.php', "$dataDir/$file"]);
+    check("iccrebuild $file", [0, '', md5_file("$dataDir/$file")], [$status, $err, md5($out)]);
+    list($status, $out, $err) = runPHP(['sample/iccdiff.php', "$dataDir/$file", "$dataDir/$file"]);
+    check("iccdiff $file itself", [0, '', ''], [$status, $err, $out]);
+    list($status, $out, $err) = runPHP(['sample/iccshuffle.php', "$dataDir/$file"]);
+    check("iccshuffle $file", [0, '', array_column(parseICCFile("$dataDir/$file")->_tagTable, 'Signature')],
+          [$status, $err, call_user_func(function () use ($out) {
+              $icc = new IO_ICC();
+              $icc->parse($out);
+              return array_column($icc->_tagTable, 'Signature');
+          })]);
+}
+list($status, $out, $err) = runPHP(['sample/iccdump.php', '-r', '-f', $gray]);
+check("iccdump -r (known types only)", [0, '', $dumps['v4-gray.icc']['[]']], [$status, $err, $out]);
+list($status, $out, $err) = runPHP(['sample/iccdump.php', '-r', '-f', $v2]);
+check("iccdump -r unknown type", [true, 1], [$status !== 0, substr_count($err, 'klass === false (type:abcd)')]);
+list($status, $out, $err) = runPHP(['sample/iccversion.php', $v2, $v4, $gray]);
+check("iccversion", [0, "$v2: 2.10\n$v4: 4.30\n$gray: 4.20\n"], [$status, $out]);
+list($status, $out, $err) = runPHP(['sample/iccheader.php', $v2, $v4, $gray]);
+check("iccheader", [0, '', ['mntr', 'mntr', 'scnr']], [$status, $err, preg_match_all('/DeviceClass: *(\w+)/', $out, $m) ? $m[1] : $out]);
+list($status, $out, $err) = runPHP(['sample/icclisttags.php', $v2, $v4]);
+check("icclisttags", [0, '', 1, 1, 1, 1],
+      [$status, $err, substr_count($out, "    [00] sig:desc type:desc offset:336 size:112 version:2\n"),
+       substr_count($out, "    [16] sig:zzzz type:abcd offset:2492 size:13 version:(unknown)\n"),
+       substr_count($out, "    [11] sig:B2A0 type:mBA  offset:964 size:274 version:4\n"),
+       substr_count($out, "    [14] sig:meta type:dict offset:1344 size:16 version:5\n")]);
+list($status, $out, $err) = runPHP(['sample/iccdeltags.php', $v4]);
+check("iccdeltags list", [0, "desc\ncprt\nwtpt\nrXYZ\ngXYZ\nbXYZ\nrTRC\ngTRC\nbTRC\nchad\nA2B0\nB2A0\nA2B1\nmeas\nmeta\n"], [$status, $out]);
+list($status, $out, $err) = runPHP(['sample/iccdeltags.php', $v4, 'A2B1', 'meta', 'cprt']);
+$icc = new IO_ICC();
+$icc->parse($out);
+check("iccdeltags", [0, '', ['desc', 'wtpt', 'rXYZ', 'gXYZ', 'bXYZ', 'rTRC', 'gTRC', 'bTRC', 'chad', 'A2B0', 'B2A0', 'meas'], profileMD5($out)],
+      [$status, $err, array_column($icc->_tagTable, 'Signature'), bin2hex($icc->_header['ProfileID'])]);
+list($status, $out, $err) = runPHP(['sample/iccedit.php', $v2]);
+check("iccedit list", [0, "header\ndesc:desc\ncprt:text\nwtpt:XYZ \nbkpt:XYZ \nrXYZ:XYZ \ngXYZ:XYZ \nbXYZ:XYZ \nrTRC:curv\ngTRC:curv\nbTRC:curv\ntech:sig \nmeas:meas\nview:view\nchad:sf32\nA2B0:mft1\nB2A0:mft2\nzzzz:abcd\n"],
+      [$status, $out]);
+list($status, $out, $err) = runPHP(['sample/iccedit.php', $v2, 'bTRC']);
+check("iccedit show", [0, "type:curv\nCurveValues:0,1000,30000,65535\n"], [$status, $out]);
+list($status, $out, $err) = runPHP(['sample/iccedit.php', $v2, 'desc', 'ascii:changed']);
+$edited = tempnam(sys_get_temp_dir(), 'iccTest');
+file_put_contents($edited, $out);
+register_shutdown_function('unlink', $edited);
+check("iccedit set", [0, '', "changed"], [$status, $err, tagBySig(parseICCFile($edited), 'desc')->tag->ascii]);
+list($status, $out, $err) = runPHP(['sample/iccedit.php', $v2, 'header', 'RenderingIntent:1']);
+file_put_contents($edited, $out);
+list($status, $out, $err) = runPHP(['sample/iccdiff.php', $v2, $edited]);
+check("iccdiff", [0, '', "XXX:_header.RenderingIntent: 0, 1\n"], [$status, $err, $out]);
+list($status, $out, $err) = runPHP(['sample/iccgbr.php', $v2]);
+$icc = new IO_ICC_Editor();
+$icc->parse($out);
+check("iccgbr v2", [0, '', xyzValue(0.3851, 0.7169, 0.0971), xyzValue(0.1431, 0.0606, 0.7141), xyzValue(0.4361, 0.2225, 0.0139),
+                    [0, 1000, 30000, 65535], [563 / 256], [563 / 256]],
+      [$status, $err, tagBySig($icc, 'rXYZ')->tag->xyz, tagBySig($icc, 'gXYZ')->tag->xyz, tagBySig($icc, 'bXYZ')->tag->xyz,
+       tagBySig($icc, 'gTRC')->tag->CurveValues->toArray(), tagBySig($icc, 'bTRC')->tag->CurveValues->toArray(),
+       tagBySig($icc, 'rTRC')->tag->CurveValues->toArray()]);
+list($status, $out, $err) = runPHP(['sample/iccgbr.php', $v4]);
+check("iccgbr v4 (A2B1 without CLUT)", [1, "A2B1: unsupported (type:mAB , need mft1/mft2, or mAB/mBA with A curves and CLUT, 3 channels)\n"],
+      [$status, $err]);
+list($status, $out, $err) = runPHP(['sample/iccgbr.php', $gray]);
+check("iccgbr gray", [1, "not an RGB profile (ColorSpace:GRAY)\n"], [$status, $err]);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
